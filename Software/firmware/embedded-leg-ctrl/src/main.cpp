@@ -33,10 +33,9 @@ rclpy.spin(P())
 #if Z_FEATURE_PUBLICATION == 1
 
 // TODO: WiFI manager implementation to run the robot everywere
-#define SSID "TP-Link_BF98"
-#define PASS "59429128"
-// #define SSID "iPhone de Nico "
-// #define PASS "almohada"
+
+#define SSID "Red WiFI"
+#define PASS "Password"
 
 // Zenoh-specific parameters
 #define MODE "client"
