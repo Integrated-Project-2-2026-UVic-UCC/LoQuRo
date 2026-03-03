@@ -1,155 +1,31 @@
-/*zenoh-bridge-ros2dds*/ // open terminal to enable bridge
-/*
-python3 -c "
-import rclpy
-from rclpy.node import Node
-from sensor_msgs.msg import JointState
-
-class P(Node):
-    def __init__(self):
-        super().__init__('p')
-        pub = self.create_publisher(JointState, '/joint_commands', 10)
-        def cb():
-            m = JointState()
-            m.header.stamp = self.get_clock().now().to_msg()
-            m.header.frame_id = 'base_link'
-            m.name = ['lf_haa','lf_hfe','lf_kfe','rf_haa','rf_hfe','rf_kfe','lh_haa','lh_hfe','lh_kfe','rh_haa','rh_hfe','rh_kfe']
-            m.position = [0.0, 0.7, -1.4] * 4
-            pub.publish(m)
-        self.create_timer(0.1, cb)
-
-rclpy.init()
-rclpy.spin(P())
-"
-*/
-// code to send jointstates message via python, fopr testing
-
-#include <ServoCtrl.h>
-#include <WiFi.h>
 #include <zenoh-pico.h>
 #include <ucdr/microcdr.h>
-#include <WiFiManager.h>
+
+#include "config.h"
+#include "hardware.h"
+#include "mailbox.h"
+#include "utilities.h"
+#include "tasks.h"
 
 #if Z_FEATURE_PUBLICATION == 1
-
-// TODO: WiFI manager implementation to run the robot everywere
-
-#define SSID "Red WiFI"
-#define PASS "Password"
-
-// Zenoh-specific parameters
-#define MODE "client"
-// #define LOCATOR "tcp/172.20.10.2:7447"
-#define LOCATOR "tcp/192.168.0.36:7447" // If empty, scout
-
-#define KEYEXPR "joint_commands" // ros topic
-
-// to send data to the esp32
-#define LED_PIN 2
-
-const TickType_t whatchdog_delay = pdMS_TO_TICKS(500); // 2hz
 
 z_owned_session_t s;      // session object
 z_owned_subscriber_t sub; // subsciber object
 
-namespace Queues
-{
-  QueueHandle_t joint_states_queue; // queue to send positions to the loop (movement task)
-  QueueHandle_t time_stamp_queue;   // queue to send timestamp to the loop (latency calculation)
-  QueueHandle_t encoder_data_queue; // queue to send encoder data to the send status task
-  QueueHandle_t imu_data_queue;     // queue to send IMU data to the send status task
-}
-
 // leg motors
-uint8_t raw_buffer[512];                                                                         // buffer of 512 bytes to recieve raw data
-float joint_states[4][3] = {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; // LF, RF, LH, RH - HAA, HFE, KFE. It will be changeing, cannot be static
-#define DEADBAND (3.0f * 3.14159265f / 2.0f) * 0.001f                                            // threshold to consider a change in the leg status
+uint8_t raw_buffer[512]; // buffer of 512 bytes to recieve raw data
 
-struct Leg
-{
-  ServoCtrl haa; // hip abductor adductor
-  ServoCtrl hfe; // hip flexor extensor
-  ServoCtrl kfe; // knee flexor extensor
-
-  Leg(int haa_pin, int hfe_pin, int kfe_pin, int haa_channel, int hfe_channel, int kfe_channel, int resolution)
-      : haa(haa_pin, haa_channel, resolution), hfe(hfe_pin, hfe_channel, resolution), kfe(kfe_pin, kfe_channel, resolution)
-  {
-  }
-  void setLimit(float haa_limit, float hfe_limit, float kfe_limit)
-  {
-    haa.setLimit(haa_limit);
-    hfe.setLimit(hfe_limit);
-    kfe.setLimit(kfe_limit);
-  }
-  void write(float haa_rads, float hfe_rads, float kfe_rads)
-  {
-    haa.write(haa_rads);
-    hfe.write(hfe_rads);
-    kfe.write(kfe_rads);
-  }
-  void writeDegrees(float haa_degs, float hfe_degs, float kfe_degs)
-  {
-    haa.writeDegrees(haa_degs);
-    hfe.writeDegrees(hfe_degs);
-    kfe.writeDegrees(kfe_degs);
-  }
-};
-
-namespace ServoParams
-{
-  static constexpr int lf_hha_pin = 16;
-  static constexpr int lf_hfe_pin = 17;
-  static constexpr int lf_kfe_pin = 18;
-  static constexpr int rf_hha_pin = 19;
-  static constexpr int rf_hfe_pin = 21;
-  static constexpr int rf_kfe_pin = 22;
-  static constexpr int lh_hha_pin = 23;
-  static constexpr int lh_hfe_pin = 25;
-  static constexpr int lh_kfe_pin = 26;
-  static constexpr int rh_hha_pin = 27;
-  static constexpr int rh_hfe_pin = 32;
-  static constexpr int rh_kfe_pin = 33;
-
-  static constexpr int lf_haa_channel = 0;  // Canal LEDC (0-15)
-  static constexpr int lf_hfe_channel = 1;  // Canal LEDC (0-15)
-  static constexpr int lf_kfe_channel = 2;  // Canal LEDC (0-15)
-  static constexpr int rf_haa_channel = 3;  // Canal LEDC (0-15)
-  static constexpr int rf_hfe_channel = 4;  // Canal LEDC (0-15)
-  static constexpr int rf_kfe_channel = 5;  // Canal LEDC (0-15)
-  static constexpr int lh_haa_channel = 6;  // Canal LEDC (0-15)
-  static constexpr int lh_hfe_channel = 7;  // Canal LEDC (0-15)
-  static constexpr int lh_kfe_channel = 8;  // Canal LEDC (0-15)
-  static constexpr int rh_haa_channel = 9;  // Canal LEDC (0-15)
-  static constexpr int rh_hfe_channel = 10; // Canal LEDC (0-15)
-  static constexpr int rh_kfe_channel = 11; // Canal LEDC (0-15)
-
-  constexpr int resolution = 16; // Resolución (1-16 bits)
-}
-
-Leg leg_lf(ServoParams::lf_hha_pin, ServoParams::lf_hfe_pin, ServoParams::lf_kfe_pin, ServoParams::lf_haa_channel, ServoParams::lf_hfe_channel, ServoParams::lf_kfe_channel, ServoParams::resolution);
-Leg leg_rf(ServoParams::rf_hha_pin, ServoParams::rf_hfe_pin, ServoParams::rf_kfe_pin, ServoParams::rf_haa_channel, ServoParams::rf_hfe_channel, ServoParams::rf_kfe_channel, ServoParams::resolution);
-Leg leg_lh(ServoParams::lh_hha_pin, ServoParams::lh_hfe_pin, ServoParams::lh_kfe_pin, ServoParams::lh_haa_channel, ServoParams::lh_hfe_channel, ServoParams::lh_kfe_channel, ServoParams::resolution);
-Leg leg_rh(ServoParams::rh_hha_pin, ServoParams::rh_hfe_pin, ServoParams::rh_kfe_pin, ServoParams::rh_haa_channel, ServoParams::rh_hfe_channel, ServoParams::rh_kfe_channel, ServoParams::resolution);
-
-// TODO: function to deserialize jointstates, float32Multiarray etc
-
-// UTILITY FUNCTIONS
-double getPreciseTime() // standard function to get epoch time via NTP
-{
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0;
-}
-
+// TODO: function to deserialize float32Multiarray etc
 bool deserializeJointStates(ucdrBuffer *ub)
-{
+{ // TODO: Calculo latencia
   // Header stamped
   uint32_t sec, nanosec;
   ucdr_deserialize_uint32_t(ub, &sec);
   ucdr_deserialize_uint32_t(ub, &nanosec);
 
   double timestamp = (double)sec + (double)nanosec / 1e9; // seconds + nanoseconds in seconds, epoch time
-  xQueueOverwrite(Queues::time_stamp_queue, &timestamp);  // enviamos el timestamp a la tarea principal para calcular la latencia
+
+  xQueueOverwrite(Queues::time_stamp_queue, &timestamp); // enviamos el timestamp a la tarea principal para calcular la latencia
 
   { // Frame id, by the moment we do not need it will be destroyed
     char frame_id[32];
@@ -215,49 +91,8 @@ void data_handler(z_loaned_sample_t *sample, void *arg)
   // }
   // Serial.println();
 }
-
+// TODO: WiFI manager implementation to run the robot everywere
 // TASKS
-void watchdogTask(void *pvParameters)
-{
-  for (;;)
-  {
-    if (WiFi.status() != WL_CONNECTED)
-    {
-      digitalWrite(LED_PIN, LOW);
-      WiFi.reconnect();                // TODO: It do not reconnects, maybe we need to do WiFi.begin() again?
-      vTaskDelay(pdMS_TO_TICKS(3000)); // greater delay to give time to reconnect
-    }
-    else
-      vTaskDelay(whatchdog_delay); // delay to not overload CPU
-  }
-}
-
-void readEncodersTask(void *pvParameters)
-{
-  for (;;)
-  {
-    // TODO: read encoders and pin to core
-    vTaskDelay(pdMS_TO_TICKS(10)); // 100hz
-  }
-}
-
-void readIMUTask(void *pvParameters)
-{
-  for (;;)
-  {
-    // TODO: read IMU and pin to core
-    vTaskDelay(pdMS_TO_TICKS(10)); // 100hz
-  }
-}
-
-void sendStatusTask(void *pvParameters)
-{
-  for (;;)
-  {
-    // TODO: Send status (encoder data, imu data) to ROS2 through zenoh-pico and pin to core
-    vTaskDelay(pdMS_TO_TICKS(10)); // ajustar frecuencia de envio de status
-  }
-}
 
 void setup()
 {
@@ -357,74 +192,45 @@ void setup()
       NULL,
       0 // wifi connection
   );
+  xTaskCreatePinnedToCore(
+      writeServosTask,
+      "write_servos_task",
+      4096,
+      NULL,
+      3, // High priority
+      NULL,
+      1 // other core, 0 is for wifi
+  );
 }
 
 void loop()
 {
-  if (xQueueReceive(Queues::joint_states_queue, &joint_states, pdMS_TO_TICKS(100)) == pdTRUE) // if there is data in the buffer
+  float joint_states_debug[4][3];
+
+  // LATENCY CALCULATION
+  double timestamp_ros = 0.0;
+  static double latency = 0.0;
+  if (xQueueReceive(Queues::time_stamp_queue, &timestamp_ros, 0) == pdTRUE)
   {
-    // MOVE SERVOS
-    leg_lf.write(joint_states[0][0], joint_states[0][1], joint_states[0][2]);
-    leg_rf.write(joint_states[1][0], joint_states[1][1], joint_states[1][2]);
-    leg_lh.write(joint_states[2][0], joint_states[2][1], joint_states[2][2]);
-    leg_rh.write(joint_states[3][0], joint_states[3][1], joint_states[3][2]);
+    double current_time = getPreciseTime();
+    latency = current_time - timestamp_ros;
+  }
 
-    // LATENCY CALCULATION
-    double timestamp_ros = 0.0;
-    double latency = 0.0;
-    if (xQueueReceive(Queues::time_stamp_queue, &timestamp_ros, 0) == pdTRUE)
+  // 3. DEBUGGER (Solo imprime 1 vez por segundo para no asfixiar al ESP32)
+  static unsigned long last_print = 0;
+  if (millis() - last_print >= 1000)
+  {
+    memcpy(joint_states_debug, &joint_states, 4 * 3 * sizeof(float));
+    last_print = millis();
+    Serial.println("\n--- [DEBUG] ESTADO DEL ROBOT ---");
+    for (int leg = 0; leg < 4; leg++)
     {
-      struct timeval tv;
-      gettimeofday(&tv, NULL);
-      double current_time = (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0;
-      latency = current_time - timestamp_ros;
-    }
 
-    //   // 3. DEBUGGER (Solo imprime 1 vez por segundo para no asfixiar al ESP32)
-    //   static unsigned long last_print = 0;
-    //   if (millis() - last_print >= 1000)
-    //   {
-    //     last_print = millis();
-    //     Serial.println("\n--- [DEBUG] ESTADO DEL ROBOT ---");
-    //     for (int leg = 0; leg < 4; leg++)
-    //     {
-    //       Serial.printf("Leg %d: HAA=%.4f | HFE=%.4f | KFE=%.4f rad\n",
-    //                     leg, joint_states[leg][0], joint_states[leg][1], joint_states[leg][2]);
-    //     }
-    //     Serial.printf("Latency: %.2f ms\n", latency * 1000.0);
-    //   }
+      Serial.printf("Leg %d: HAA=%.4f | HFE=%.4f | KFE=%.4f rad\n",
+                    leg, joint_states_debug[leg][0], joint_states_debug[leg][1], joint_states_debug[leg][2]);
+    }
+    Serial.printf("Latency: %.2f ms\n", latency * 1000.0);
   }
 }
 
 #endif
-
-/*
-//Ideas descartadas:
-  loop:
-    memcpy(leg_status, temp_leg_status, 4 * 3 * sizeof(float)); // copiamos el status a una variable temporal para mover los servos sin que se sobreescriba durante la ejecucion
-  handler:
-    for (int j = 0; j < 4; ++j)
-    {
-      for (int i = 0; i < 3; ++i)
-      {
-        if (fabsf(last_leg_status[j][i] - leg_status[j][i]) > DEADBAND) // si hi ha una nova dada copiem tot i marxem
-        {
-          // static float last_leg_status[4][3] = {*leg_lf, *leg_lh, *leg_rf, *leg_rh};
-          //  Copiamos cada pata a su fila correspondiente en el status
-          memcpy(last_leg_status, leg_status, 4 * 3 * sizeof(float))
-          return;
-        }
-      }
-    }
-    // threading (bona practica: cada vegada que accedim a una variable que canvia fem semafor, per evitar que es sobreescrigui mentre la llegim o escrivim)
-    // SemaphoreHandle_t data_mutex; // mutex para proteger el acceso a leg_status
-    //SNAPSHOT
-    xMutex = xSemaphoreCreateMutex();
-    xSemaphoreTake(xMutex, portMAX_DELAY);
-    // copiar leg_status a una variable temporal para mover los servos sin que se sobreescriba durante la ejecucion
-    memcpy(temp_leg_status, leg_status, 4 * 3 * sizeof(float));
-    xSemaphoreGive(xMutex); // liberamos el mutex despues de actualizar los servos
-
-    float *temp_leg_status[i][j] = &leg_status[i][j] // variable temporal para mover los servos sin que se sobreescriba durante la ejecucion
-
-*/
