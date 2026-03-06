@@ -1,0 +1,18 @@
+[project]
+name = "quadruped_mjlab_project"
+version = "0.1.0"
+description = "Proyecto de replicación Go2 20cm con Reinforcement Learning"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mjlab",
+    "torch",
+    "numpy",
+]
+
+[project.entry-points."mjlab.tasks"]
+quad_bot = "quadruped_mjlab_project"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
