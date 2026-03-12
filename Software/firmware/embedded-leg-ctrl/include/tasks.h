@@ -1,8 +1,10 @@
 #ifndef _TASKS_H_
 #define _TASKS_H_
+#include "zenoh.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+void data_handler(z_loaned_sample_t *sample, void *arg);
 extern void watchdogTask(void *pvParameters);
 extern void readEncodersTask(void *pvParameters);
 extern void readIMUTask(void *pvParameters);

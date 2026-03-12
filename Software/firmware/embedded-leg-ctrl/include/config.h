@@ -15,8 +15,9 @@
 
 // Zenoh-specific parameters
 #define MODE "client"
-#define LOCATOR "tcp/172.20.10.2:7447"
+#define LOCATOR "tcp/172.20.10.10:7447"
 // #define LOCATOR "tcp/192.168.0.36:7447" // If empty, scout
+#define LOCATOR ""
 
 #define KEYEXPR "joint_commands" // ros topic
 
