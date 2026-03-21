@@ -3,6 +3,7 @@
 #define _HARDWARE_H_
 
 #include "ServoCtrl.h"
+#include "IMUMPU9250.h"
 
 struct Leg {
   ServoCtrl haa;  // hip abductor adductor
@@ -67,5 +68,8 @@ extern Leg leg_lh;
 extern Leg leg_rh;
 
 extern float joint_states[4][3];
+
+// imu definition
+extern IMUMPU9250 imu;
 
 #endif

@@ -68,4 +68,27 @@ void initZenoh()
     }
     Serial.println("OK");
     Serial.print("Zenoh setup finished!\nIP: ");
+    // declare Zenoh IMu publisher
+    Serial.print("ZENOH: Declaring Publisher on ");
+    Serial.println(IMU_KEYEXPR);
+    z_view_keyexpr_t ke_pub;
+    z_view_keyexpr_from_str_unchecked(&ke_pub, IMU_KEYEXPR);
+    if (z_declare_publisher(z_session_loan(&s), &pub_imu, z_view_keyexpr_loan(&ke_pub), NULL) < 0)
+    {
+        Serial.println("ZENOH: Error declaring IMU publisher");
+        return false;
+    }
+    // declare zenoh mag publisher
+    Serial.print("ZENOH: Declaring Publisher on ");
+    Serial.println(MAG_KEYEXPR);
+    z_view_keyexpr_t ke_pub_mag;
+    z_view_keyexpr_from_str_unchecked(&ke_pub_mag, MAG_KEYEXPR);
+    if (z_declare_publisher(z_session_loan(&s), &pub_mag, z_view_keyexpr_loan(&ke_pub_mag), NULL) < 0)
+    {
+        Serial.println("ZENOH: Error declaring MAG publisher");
+        return false;
+    }
+
+    Serial.println("SYSTEM: Zenoh setup finished!");
+    return true;
 }

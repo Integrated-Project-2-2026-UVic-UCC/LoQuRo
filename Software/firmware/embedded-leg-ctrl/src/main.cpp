@@ -18,14 +18,22 @@ void setup()
   Serial.println("Connecting to WiFi...");
   WiFi.mode(WIFI_STA);
   WiFi.begin(SSID, PASS);
+  // QUEUES
+  Queues::imu_data_queue = xQueueCreate(1, sizeof(IMUdata));
 
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(1000);
   }
   Serial.println("OK");
+  // IMU
+  Serial.println("SYSTEM: Initializing IMU");
+  imu.begin();
+  imu.calibrate();
 
   initZenoh(); // init the zenoh config
+  imu.beginMag();
+  imu.calibrateMag();
 
   Serial.println(WiFi.localIP());
 
@@ -52,6 +60,9 @@ void setup()
                           NULL,
                           1 // other core, 0 is for wifi
   );
+  xTaskCreatePinnedToCore(readIMUTask, "imu_read", 4096, NULL, 2, NULL, 1);
+  xTaskCreatePinnedToCore(sendStatusTask, "send_status", 4096, NULL, 2, NULL, 1); // core 1: latency min/avg/max/mdev = 4.512/7.733/22.248/2.542 ms
+                                                                                  // core 0: latency min/avg/max/mdev = 4.872/9.381/62.122/4.254 ms
 }
 
 void loop()

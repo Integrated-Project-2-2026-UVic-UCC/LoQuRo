@@ -65,4 +65,98 @@ bool deserializeJointStates(ucdrBuffer *ub)
     }
     xQueueOverwrite(Queues::joint_states_queue, leg_buf);
     return true;
+
+uint32_t serializeImu(uint8_t *buffer, uint32_t size, const IMUdata &data, double timestamp)
+{
+    // it gets auto headered, out of buffer
+    buffer[0] = 0x00;
+    buffer[1] = 0x01; // Little Endian CDR
+    buffer[2] = 0x00;
+    buffer[3] = 0x00;
+
+    ucdrBuffer ub;
+    ucdr_init_buffer(&ub, buffer + 4, size - 4);
+
+    // Header stamp
+    uint32_t sec = (uint32_t)timestamp;
+    uint32_t nanosec = (uint32_t)((timestamp - sec) * 1e9);
+    ucdr_serialize_uint32_t(&ub, sec);
+    ucdr_serialize_uint32_t(&ub, nanosec);
+
+    // no frame id
+    ucdr_serialize_string(&ub, "imu_link");
+
+    // orientation in cuaternions, 0 by default
+    ucdr_serialize_double(&ub, 0.0);
+    ucdr_serialize_double(&ub, 0.0);
+    ucdr_serialize_double(&ub, 0.0);
+    ucdr_serialize_double(&ub, 1.0); // initial angle
+
+    // Orientation covariance: -1 en [0,0] = "no tengo orientación", Madgwick la calcula
+    double cov_orient[9] = {-1.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0};
+    ucdr_serialize_array_double(&ub, cov_orient, 9);
+
+    // Angular velocity (rad/s)
+    const double deg2rad = 3.14159265358979 / 180.0;
+    ucdr_serialize_double(&ub, (double)data.gyro.x * deg2rad);
+    ucdr_serialize_double(&ub, (double)data.gyro.y * deg2rad);
+    ucdr_serialize_double(&ub, (double)data.gyro.z * deg2rad);
+
+    // Gyro covariance: MPU9250 datasheet ~0.05 dps rms at 500dps scale -> (0.05 * deg2rad)^2
+    const double gyro_var = 7.6e-7; // (rad/s)^2
+    double cov_gyro[9] = {gyro_var, 0.0, 0.0,
+                          0.0, gyro_var, 0.0,
+                          0.0, 0.0, gyro_var};
+    ucdr_serialize_array_double(&ub, cov_gyro, 9);
+
+    // Linear acceleration (m/s²)
+    const double g_to_ms2 = 9.80665;
+    ucdr_serialize_double(&ub, (double)data.accel.x * g_to_ms2);
+    ucdr_serialize_double(&ub, (double)data.accel.y * g_to_ms2);
+    ucdr_serialize_double(&ub, (double)data.accel.z * g_to_ms2);
+
+    // Accel covariance: MPU9250 datasheet ~8mg rms at +-8g scale -> (8e-3 * 9.80665)^2
+    const double accel_var = 6.2e-3; // (m/s^2)^2
+    double cov_accel[9] = {accel_var, 0.0, 0.0,
+                           0.0, accel_var, 0.0,
+                           0.0, 0.0, accel_var};
+    ucdr_serialize_array_double(&ub, cov_accel, 9);
+
+    // +4 cause we removed the header
+    return 4 + ucdr_buffer_length(&ub);
+}
+
+uint32_t serializeMag(uint8_t *buffer, uint32_t size, const IMUdata &data, double timestamp)
+{
+    // CDR header
+    buffer[0] = 0x00;
+    buffer[1] = 0x01; // Little Endian CDR
+    buffer[2] = 0x00;
+    buffer[3] = 0x00;
+
+    ucdrBuffer ub;
+    ucdr_init_buffer(&ub, buffer + 4, size - 4);
+
+    // Header stamp
+    uint32_t sec = (uint32_t)timestamp;
+    uint32_t nanosec = (uint32_t)((timestamp - sec) * 1e9);
+    ucdr_serialize_uint32_t(&ub, sec);
+    ucdr_serialize_uint32_t(&ub, nanosec);
+
+    // no frame id needed
+    ucdr_serialize_string(&ub, "imu_link");
+
+    // magnetic_field (geometry_msgs/Vector3) in teslas, sensor gives uTeslas
+    const double uT_to_T = 1e-6;
+    ucdr_serialize_double(&ub, (double)data.mag.x * uT_to_T);
+    ucdr_serialize_double(&ub, (double)data.mag.y * uT_to_T);
+    ucdr_serialize_double(&ub, (double)data.mag.z * uT_to_T);
+
+    // no covariance
+    double cov_null[9] = {0.0};
+    ucdr_serialize_array_double(&ub, cov_null, 9);
+
+    return 4 + ucdr_buffer_length(&ub);
 }

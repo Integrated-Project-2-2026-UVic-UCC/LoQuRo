@@ -19,7 +19,9 @@
 // #define LOCATOR "tcp/192.168.0.36:7447" // If empty, scout
 #define LOCATOR ""
 
-#define KEYEXPR "joint_commands" // ros topic
+#define KEYEXPR "joint_commands"   // ros topic jointstates
+#define IMU_KEYEXPR "imu/data_raw" // ros topic imu
+#define MAG_KEYEXPR "imu/mag"      // ros topic magnetic field
 
 // to send data to the esp32
 #define LED_PIN 2

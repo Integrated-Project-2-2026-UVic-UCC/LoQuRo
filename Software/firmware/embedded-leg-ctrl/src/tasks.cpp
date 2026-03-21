@@ -89,18 +89,77 @@ void readEncodersTask(void *pvParameters)
 
 void readIMUTask(void *pvParameters)
 {
+    IMUdata current_data;
     for (;;)
     {
-        // TODO: read IMU and pin to core
+        current_data.accel = imu.getAccel();
+        current_data.gyro = imu.getGyro();
+        current_data.mag = imu.getMag();
+
+        xQueueOverwrite(Queues::imu_data_queue, &current_data);
         vTaskDelay(pdMS_TO_TICKS(10)); // 100hz
     }
 }
 
 void sendStatusTask(void *pvParameters)
 {
+    IMUdata received_imu;
+    uint8_t imu_cdr_buffer[512];
+    uint8_t mag_cdr_buffer[256];
     for (;;)
     {
-        // TODO: Send status (encoder data, imu data) to ROS2 through zenoh-pico and pin to core
-        vTaskDelay(pdMS_TO_TICKS(10)); // ajustar frecuencia de envio de status
+        // TODO: Send encoder data to ROS2 through zenoh-pico and pin to core
+        if (xQueueReceive(Queues::imu_data_queue, &received_imu, portMAX_DELAY) == pdTRUE) // if there is data in the buffer
+        {
+            // get current time
+            double now = getPreciseTime();
+
+            // serialize to IMU msg
+            uint32_t msg_len = serializeImu(imu_cdr_buffer, sizeof(imu_cdr_buffer), received_imu, now);
+
+            // zenoh payload
+            z_owned_bytes_t payload;
+            z_bytes_copy_from_buf(&payload, imu_cdr_buffer, msg_len);
+
+            // publish in imu keyexpr
+            static uint32_t pub_ok = 0, pub_fail = 0;
+            if (z_publisher_put(z_publisher_loan(&pub_imu), z_bytes_move(&payload), NULL) < 0)
+            {
+                pub_fail++;
+                if (pub_fail % 10 == 0)
+                    Serial.printf("ZENOH: %lu ok / %lu fail\n", pub_ok, pub_fail);
+            }
+            else
+            {
+                pub_ok++;
+            }
+            // same for magneitc field msg
+            uint32_t mag_len = serializeMag(mag_cdr_buffer, sizeof(mag_cdr_buffer), received_imu, now);
+            z_owned_bytes_t mag_payload;
+            z_bytes_copy_from_buf(&mag_payload, mag_cdr_buffer, mag_len);
+            if (z_publisher_put(z_publisher_loan(&pub_mag), z_bytes_move(&mag_payload), NULL) < 0)
+            {
+                Serial.println("ZENOH: Error publishing MAG data");
+            }
+            //---DEBUGGING---
+            // Serial.print("ACCELEROMETER: ");
+            // (received_data.accel.x < 0.01 && received_data.accel.x > -0.01) ? Serial.print(abs(received_data.accel.x)) : Serial.print(received_data.accel.x); // to do not print negative 0.0, otherwise is difficult to see
+            // Serial.print(", ");
+            // (received_data.accel.y < 0.01 && received_data.accel.y > -0.01) ? Serial.print(abs(received_data.accel.y)) : Serial.print(received_data.accel.y);
+            // Serial.print(", ");
+            // (received_data.accel.z < 0.01 && received_data.accel.z > -0.01) ? Serial.print(abs(received_data.accel.z)) : Serial.print(received_data.accel.z);
+            // Serial.print("  GYROSCOPE: ");
+            // Serial.print(received_data.gyro.x);
+            // Serial.print(", ");
+            // Serial.print(received_data.gyro.y);
+            // Serial.print(", ");
+            // Serial.println(received_data.gyro.z);
+            // Serial.print("  MAGNETOMETER: ");
+            // Serial.print(received_data.mag.x);
+            // Serial.print(", ");
+            // Serial.print(received_data.mag.y);
+            // Serial.print(", ");
+            // Serial.println(received_data.mag.z);
+        }
     }
 }

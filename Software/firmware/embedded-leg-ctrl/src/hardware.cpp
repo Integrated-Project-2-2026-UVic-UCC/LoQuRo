@@ -6,4 +6,4 @@ Leg leg_rf(ServoParams::rf_hha_pin, ServoParams::rf_hfe_pin, ServoParams::rf_kfe
 Leg leg_lh(ServoParams::lh_hha_pin, ServoParams::lh_hfe_pin, ServoParams::lh_kfe_pin, ServoParams::lh_haa_channel, ServoParams::lh_hfe_channel, ServoParams::lh_kfe_channel, ServoParams::resolution);
 Leg leg_rh(ServoParams::rh_hha_pin, ServoParams::rh_hfe_pin, ServoParams::rh_kfe_pin, ServoParams::rh_haa_channel, ServoParams::rh_hfe_channel, ServoParams::rh_kfe_channel, ServoParams::resolution);
 
-float joint_states[4][3] = {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; // LF, RF, LH, RH - HAA, HFE, KFE. It will be changeing, cannot be static
+float joint_states[4][3] = {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; // LF, RF, LH, RH - HAA, HFE, KFE. It will be changeing, cannot be static// imu implementationIMUMPU9250 imu(0x68, 0x0C);// imu implementationIMUMPU9250 imu(0x68, 0x0C);
