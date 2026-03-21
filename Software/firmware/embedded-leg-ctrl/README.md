@@ -15,8 +15,9 @@ class P(Node):
     def __init__(self):
         super().__init__('p')
         self.a = 0.0
+        self.semaphore = False
         self.pub = self.create_publisher(JointState, '/joint_commands', 10)
-        self.create_timer(0.1, self.cb)
+        self.create_timer(0.02, self.cb) 
     def cb(self):
         m = JointState()
         m.header.stamp = self.get_clock().now().to_msg()
@@ -24,12 +25,36 @@ class P(Node):
         m.name = ['lf_haa','lf_hfe','lf_kfe','rf_haa','rf_hfe','rf_kfe','lh_haa','lh_hfe','lh_kfe','rh_haa','rh_hfe','rh_kfe']
         m.position = [self.a, self.a, self.a] * 4
         self.pub.publish(m)
-        self.a+=0.1
+        if not self.semaphore:
+            self.a += 0.02
+            if self.a >= 3.14:
+                self.semaphore = True
+        else:
+            self.a -= 0.02
+            if self.a <= 0.0:
+                self.semaphore = False
+
+
 
 rclpy.init()
 rclpy.spin(P())
 "
 ```
+**For IMU sensor:**
+```bash
+ros2 run imu_filter_madgwick imu_filter_madgwick_node --ros-args \
+
+  -r imu/data_raw:=/imu/data_raw \
+
+  -r imu/mag:=/imu/mag \
+
+  -p use_mag:=true
+```
+In other terminal:
+```bash
+rviz2
+```
+Fist, you must select `imu_link` or `base_link` as the fixed frame. Then go to `add`->`by topic` and select the topic `imu/data`. 
 ### Ideas descartadas
 #### 1. Data handling
 
