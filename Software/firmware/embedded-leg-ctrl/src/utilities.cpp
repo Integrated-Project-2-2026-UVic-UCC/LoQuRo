@@ -15,21 +15,120 @@ double getPreciseTime() // standard function to get epoch time via NTP
     return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0;
 }
 
-// TODO: function to deserialize float32Multiarray etc
-bool deserializeJointStates(ucdrBuffer *ub)
-{ // TODO: Calculo latencia
+void saveConfigCallback()
+{
+    Serial.println("WIFI MANAGER: Web portal changes detected, flag activated");
+    shouldSaveConfig = true;
+}
+
+void beginNetwork()
+{
+    Preferences preferences;
+    char pc_ip[40] = ""; // will save IP
+    preferences.begin("robot", false);
+    String saved_ip = preferences.getString("zenoh_ip", "");
+    strncpy(pc_ip, saved_ip.c_str(), sizeof(pc_ip));
+
+    WiFiManager wm;
+    wm.setSaveConfigCallback(saveConfigCallback);
+    wm.setConnectTimeout(10);
+    wm.setConfigPortalTimeout(180);
+
+    WiFiManagerParameter custom_zenoh_ip("zenoh", "PC IP (ROS2)", pc_ip, 40);
+    wm.addParameter(&custom_zenoh_ip);
+
+    Serial.println("WIFI MANAGER: Searching for saved SSIDs");
+
+    if (!wm.autoConnect("Quad-bot"))
+    {
+        Serial.println("WIFI MANAGER: Timeout, resetting device");
+        delay(3000);
+        ESP.restart();
+    }
+
+    // if user saved data correctly from web
+    if (shouldSaveConfig)
+    {
+        String new_ip = custom_zenoh_ip.getValue();
+        if (new_ip.length() >= 7)
+        {
+            strncpy(pc_ip, new_ip.c_str(), sizeof(pc_ip));
+            preferences.putString("zenoh_ip", pc_ip);
+            Serial.println("WIFI MANAGER: New network saved");
+        }
+        shouldSaveConfig = false; // not necessary to save config
+    }
+
+    WiFi.setSleep(false);
+
+    char full_locator[60] = "";
+    bool zenoh_connected = false;
+
+    if (strlen(pc_ip) >= 7)
+    {
+        sprintf(full_locator, "tcp/%s:7447", pc_ip);
+        Serial.printf("ZENOH: Trying to connect Zenoh in: %s\n", full_locator);
+        zenoh_connected = initZenoh(full_locator);
+    }
+
+    if (!zenoh_connected)
+    {
+        Serial.println("ZENOH: Zenoh initialization failed! Opening web portal");
+        digitalWrite(LED_PIN, LOW);
+
+        if (wm.startConfigPortal("Quad-bot"))
+        {
+            if (shouldSaveConfig)
+            {
+                String forced_ip = custom_zenoh_ip.getValue();
+                if (forced_ip.length() >= 7)
+                {
+                    strncpy(pc_ip, forced_ip.c_str(), sizeof(pc_ip));
+                    preferences.putString("zenoh_ip", pc_ip);
+                    Serial.printf("WIFI MANAGER: New IP saved correctly!: %s\n", pc_ip);
+                }
+                else
+                {
+                    Serial.println("WIFI MANAGER: IP not valid! Will be ignored");
+                }
+            }
+            Serial.println("SYSTEM: Resetting device to apply changes");
+            delay(2000);
+            ESP.restart();
+        }
+        else
+        {
+            Serial.println("WIFI MANAGER: Timeout reached without configuration, resetting device");
+            delay(2000);
+            ESP.restart();
+        }
+    }
+    configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+
+    // Esperar sincronización
+    Serial.print("Syncing NTP");
+    struct tm timeinfo;
+    while (!getLocalTime(&timeinfo))
+    {
+        Serial.print(".");
+        delay(500);
+    }
+    Serial.println(" OK");
+
+    Serial.println("SYSTEM: Zenoh connected succesfully!");
+}
+
+// FEATURE: function to deserialize float32Multiarray etc
+bool deserializeJointStates(ucdrBuffer *ub, float target_joints[4][3], double *timestamp)
+{
     // Header stamped
     uint32_t sec, nanosec;
     ucdr_deserialize_uint32_t(ub, &sec);
     ucdr_deserialize_uint32_t(ub, &nanosec);
 
-    double timestamp =
+    *timestamp =
         (double)sec +
         (double)nanosec / 1e9; // seconds + nanoseconds in seconds, epoch time
-
-    xQueueOverwrite(Queues::time_stamp_queue,
-                    &timestamp); // enviamos el timestamp a la tarea principal
-                                 // para calcular la latencia
 
     { // Frame id, by the moment we do not need it will be destroyed
         char frame_id[32];
@@ -45,30 +144,26 @@ bool deserializeJointStates(ucdrBuffer *ub)
              i++) // read number of names and discard
             ucdr_deserialize_string(ub, name_buf, sizeof(name_buf));
     }
-    uint32_t pos_count; // size of position array
+    uint32_t pos_count;
     ucdr_deserialize_uint32_t(ub, &pos_count);
-
     if (pos_count < 12)
-        return false; // we expect 12 positions, else the comunication failed or is
-                      // not valid
+        return false;
 
-    // CRÍTICO: Inicializar a 0.0 para evitar 'inf'
+    ucdr_align_to(ub, 8);
+
     double positions[12] = {0.0};
-
-    // read all the postion array (we now we get doubles) (analized rawdata with
-    // AI)
     if (!ucdr_deserialize_array_double(ub, positions, 12))
         return false;
 
-    float leg_buf[4][3]; // buffer for the joint_states queue
     for (int leg = 0; leg < 4; leg++)
     {
-        leg_buf[leg][0] = (float)positions[leg * 3 + 0];
-        leg_buf[leg][1] = (float)positions[leg * 3 + 1];
-        leg_buf[leg][2] = (float)positions[leg * 3 + 2];
+        target_joints[leg][0] = (float)positions[leg * 3 + 0];
+        target_joints[leg][1] = (float)positions[leg * 3 + 1];
+        target_joints[leg][2] = (float)positions[leg * 3 + 2];
     }
-    xQueueOverwrite(Queues::joint_states_queue, leg_buf);
+
     return true;
+}
 
 uint32_t serializeImu(uint8_t *buffer, uint32_t size, const IMUdata &data, double timestamp)
 {

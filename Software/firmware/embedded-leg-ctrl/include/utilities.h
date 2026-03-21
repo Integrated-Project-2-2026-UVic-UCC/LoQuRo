@@ -5,7 +5,7 @@
 #include "IMUMPU9250.h"
 
 extern double getPreciseTime();
-extern bool deserializeJointStates(ucdrBuffer *ub);
+bool deserializeJointStates(ucdrBuffer *ub, float target_joints[4][3], double *timestamp);
 extern void saveConfigCallback();
 extern void beginNetwork();
 extern bool shouldSafeConfig;

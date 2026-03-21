@@ -5,9 +5,6 @@
 #include "mailbox.h"
 #include "utilities.h"
 
-
-// leg motors
-uint8_t raw_buffer[512]; // buffer of 512 bytes to recieve raw data
 const TickType_t whatchdog_delay = pdMS_TO_TICKS(5000); // 0.2hz
 
 // zenoh callback to receive data
@@ -31,14 +28,21 @@ void data_handler(z_loaned_sample_t *sample, void *arg)
     ucdr_init_buffer(&ub, raw_buffer + 4,
                      len - 4); // pass first 4 bytes, header of message
 
-    if (!deserializeJointStates(&ub))
-        return;
+    float new_joints[4][3];
+    double new_timestamp;
 
-    //---DEBUGGING---
+    if (deserializeJointStates(&ub, new_joints, &new_timestamp))
+    {
+        // if the message got deserialized, send to each queue
+        xQueueOverwrite(Queues::joint_states_queue, &new_joints);
+        xQueueOverwrite(Queues::time_stamp_queue, &new_timestamp);
+    }
+
+    // //---DEBUGGING---
     // for (int i = 0; i < len / sizeof(uint8_t); ++i)
     // {
-    //   Serial.print(((uint8_t *)raw_buffer)[i], HEX);
-    //   Serial.print(" ");
+    //     Serial.print(((uint8_t *)raw_buffer)[i], HEX);
+    //     Serial.print(" ");
     // }
     // Serial.println();
 }
@@ -66,16 +70,18 @@ void watchdogTask(void *pvParameters)
 
 void writeServosTask(void *pvParameters)
 {
+    float new_joints[4][3];
     for (;;)
     {
-        if (xQueueReceive(Queues::joint_states_queue, &joint_states, portMAX_DELAY) == pdTRUE) // if there is data in the buffer
+        if (xQueueReceive(Queues::joint_states_queue, &new_joints, portMAX_DELAY) == pdTRUE)
         {
-            // MOVE SERVOS
-            leg_lf.write(joint_states[0][0], joint_states[0][1], joint_states[0][2]);
-            leg_rf.write(joint_states[1][0], joint_states[1][1], joint_states[1][2]);
-            leg_lh.write(joint_states[2][0], joint_states[2][1], joint_states[2][2]);
-            leg_rh.write(joint_states[3][0], joint_states[3][1], joint_states[3][2]);
+            memcpy(joint_states, new_joints, sizeof(joint_states)); // only for debug, race conditiin doesnt matter
+            leg_lf.write(new_joints[0][0], new_joints[0][1], new_joints[0][2]);
+            leg_rf.write(new_joints[1][0], new_joints[1][1], new_joints[1][2]);
+            leg_lh.write(new_joints[2][0], new_joints[2][1], new_joints[2][2]);
+            leg_rh.write(new_joints[3][0], new_joints[3][1], new_joints[3][2]);
         }
+        // sin vTaskDelay, el bloqueo lo gestiona portMAX_DELAY
     }
 }
 
