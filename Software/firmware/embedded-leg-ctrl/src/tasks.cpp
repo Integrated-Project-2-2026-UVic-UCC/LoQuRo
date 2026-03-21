@@ -5,14 +5,15 @@
 #include "mailbox.h"
 #include "utilities.h"
 
-const TickType_t whatchdog_delay = pdMS_TO_TICKS(500); // 2hz
 
 // leg motors
 uint8_t raw_buffer[512]; // buffer of 512 bytes to recieve raw data
+const TickType_t whatchdog_delay = pdMS_TO_TICKS(5000); // 0.2hz
 
 // zenoh callback to receive data
 void data_handler(z_loaned_sample_t *sample, void *arg)
 {
+    uint8_t raw_buffer[512]; // buffer of 512 bytes to recieve raw data
     const z_loaned_bytes_t *payload = z_sample_payload(sample);
     z_bytes_reader_t reader = z_bytes_get_reader(payload);
     size_t len = z_bytes_reader_remaining(&reader);

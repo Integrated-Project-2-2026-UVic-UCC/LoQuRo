@@ -2,7 +2,7 @@
 #define _ZENOH_H_
 #include <zenoh-pico.h>
 
-extern void initZenoh();
+extern bool initZenoh(const char *locator_str);
 extern z_owned_session_t s;         // session object
 extern z_owned_subscriber_t sub;    // subsciber object
 extern z_owned_publisher_t pub_imu; // publisher imu

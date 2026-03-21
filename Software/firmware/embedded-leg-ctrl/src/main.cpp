@@ -1,5 +1,4 @@
 #include "config.h"
-#include "zenoh.h"
 #include "hardware.h"
 #include "mailbox.h"
 #include "tasks.h"
@@ -7,37 +6,26 @@
 
 #if Z_FEATURE_PUBLICATION == 1
 
-// TODO: WiFI manager implementation to run the robot everywere
-// TASKS
+// DONE: WiFI manager implementation to run the robot everywere
 
 void setup()
 {
   pinMode(LED_PIN, OUTPUT);
   Serial.begin(115200);
 
-  Serial.println("Connecting to WiFi...");
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(SSID, PASS);
   // QUEUES
   Queues::imu_data_queue = xQueueCreate(1, sizeof(IMUdata));
 
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(1000);
-  }
-  Serial.println("OK");
   // IMU
   Serial.println("SYSTEM: Initializing IMU");
   imu.begin();
   imu.calibrate();
 
-  initZenoh(); // init the zenoh config
   imu.beginMag();
   imu.calibrateMag();
 
-  Serial.println(WiFi.localIP());
 
-  digitalWrite(LED_PIN, HIGH);
+  beginNetwork();
 
   //////////////// Aditional configs /////////////////////////
 
@@ -50,6 +38,9 @@ void setup()
           double)); // init buffer to recive timestamp for latency calculation
   // Queues::encoder_data_queue = xQueueCreate(1, );
   // Queues::imu_data_queue = xQueueCreate(1, );
+  Serial.print("IP ESP32: ");
+  Serial.println(WiFi.localIP());
+  digitalWrite(LED_PIN, HIGH);
 
   // threads declarations
   xTaskCreatePinnedToCore(watchdogTask, "watchdog_task", 4096, NULL, 1, NULL,

@@ -5,19 +5,10 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiManager.h>
-
-// #define SSID "TP-Link_BF98"
-// #define PASS "59429128"
-#define SSID "iPhone de Nico "
-#define PASS "almohada"
-// #define SSID "Red WiFI"
-// #define PASS "Password"
+#include <Preferences.h> // non-volatile memory
 
 // Zenoh-specific parameters
 #define MODE "client"
-#define LOCATOR "tcp/172.20.10.10:7447"
-// #define LOCATOR "tcp/192.168.0.36:7447" // If empty, scout
-#define LOCATOR ""
 
 #define KEYEXPR "joint_commands"   // ros topic jointstates
 #define IMU_KEYEXPR "imu/data_raw" // ros topic imu

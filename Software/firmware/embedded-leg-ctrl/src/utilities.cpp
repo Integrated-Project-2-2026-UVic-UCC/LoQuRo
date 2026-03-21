@@ -1,9 +1,13 @@
 // IMPLEMENTATION OF UTILITIES INTERFACE
 #include "utilities.h"
+#include "config.h"
 #include "mailbox.h"
+#include "zenoh.h"
 #include <sys/time.h>
 
-// TODO: Maybe this time is not paralel to ROS2 time
+bool shouldSaveConfig = false;
+
+// Only for sending
 double getPreciseTime() // standard function to get epoch time via NTP
 {
     struct timeval tv;
