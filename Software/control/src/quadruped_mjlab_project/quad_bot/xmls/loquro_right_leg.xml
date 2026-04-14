@@ -1,0 +1,99 @@
+<mujoco model="serial_leg_right">
+  <compiler angle="radian" meshdir="assets/"/>
+
+  <option timestep="0.001" integrator="implicitfast" iterations="80" ls_iterations="30"/>
+
+  <visual>
+    <global offwidth="1692" offheight="936"/>
+    <headlight ambient="0.45 0.45 0.45" diffuse="0.75 0.75 0.75" specular="0.15 0.15 0.15"/>
+  </visual>
+
+  <statistic meaninertia="0.00126322" extent="0.238549" center="0.0567529 -0.0356881 0.943493"/>
+
+  <asset>
+    <mesh name="cad_servo20kg_p4_correct_mesh" file="cad_servo20kg_p4_correct.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="servo_sin_cabezal_mesh" file="servo_sin_cabezal.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="tensor_aluminio_11_60_correct_mesh" file="tensor_aluminio_11_60_correct.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="union_servo_correct_mesh" file="union_servo_correct.stl" scale="0.001 0.001 0.001"/>
+
+    <mesh name="foot_right_mesh" file="foot_left_right.stl" scale="0.001 0.001 0.001"/> <!-- tpu -->
+    <mesh name="hombro_pierna_right_mesh" file="hombro_pierna_correct_r.stl" scale="0.001 0.001 0.001"/> <!-- azul (caja) -->
+    <mesh name="pieza1_pierna_right_mesh" file="pieza1_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- amarillo -->
+    <mesh name="pieza2_pierna_right_mesh" file="pieza2_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- verde -->
+    <mesh name="pieza3_pierna_right_mesh" file="pieza3_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- lila femur -->
+    <mesh name="pieza4_pierna_right_mesh" file="pieza4_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- azul claro tibia -->
+  </asset>
+
+  <worldbody>
+    <light pos="0 0 3" dir="0 0 -1"/>
+    
+    <body name="shoulder_servo" pos="0 0 1" euler="0 1.5708 0"> <!-- shoulder servo -->
+      <geom type="mesh" rgba="0.18 0.21 0.25 1" mesh="servo_sin_cabezal_mesh"/>
+      <body name="servo_u_1" pos="0 0 0.005" euler="0 0 3.14159"> <!-- 90º -->
+        <joint name="shoulder_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" armature="0.004" damping="0.12" frictionloss="0.003"/>
+        <geom type="mesh" rgba="0.94 0.55 0.2 1" mesh="union_servo_correct_mesh"/>
+        
+        <body name="hombro_pierna" pos="0 0 0.002" euler="0 3.14159 3.14159"> <!-- mide 60.6mm-->
+          <geom type="mesh" rgba="0.15 0.55 0.78 1" mesh="hombro_pierna_right_mesh"/> <!-- azul (caja) DONE -->
+          
+          <body name="knee_servo" pos="-0.0200215 0.0230215 -0.0200215" euler="-1.571 0 3.14159"> <!-- knee servo -->
+            <geom type="mesh" rgba="0.3 0.33 0.38 1" mesh="servo_sin_cabezal_mesh"/>
+            <body name="servo_u_2" pos="0 0 0.005" euler="0 0 4.7">  <!--1.570796     90º--> <!-- 3.13 -->
+              <joint name="knee_joint" pos="0 0 0" axis="0 0 1" range="-1.57 0" armature="0.004" damping="0.12" frictionloss="0.003"/>
+              <geom type="mesh" rgba="0.86 0.24 0.24 1" mesh="cad_servo20kg_p4_correct_mesh"/>
+              
+              <body name="pieza1_pierna" pos="0.00 -0.02451 0.0093" euler="0 0 2.39"> <!-- amarillo -->
+                <joint name="pieza1_pierna_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/> 
+                <geom type="mesh" rgba="0.96 0.82 0.18 1" mesh="pieza1_pierna_right_mesh"/> 
+              </body>
+            </body>
+          </body>
+
+          <body name="hip_servo" pos="0 0.0230215 -0.04055" euler="-1.571 0 0"> <!-- hip servo -->
+            <geom type="mesh" rgba="0.44 0.29 0.58 1" mesh="servo_sin_cabezal_mesh"/>
+            
+            <body name="homoplato" pos="0 0 0" euler="3.14159 0 -2.328"> <!-- verde -->
+              <joint name="shoulder_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+              <geom type="mesh" rgba="0.16 0.72 0.45 1" mesh="pieza2_pierna_right_mesh"/> 
+              
+              <body name="tensor_aluminio" pos="0.02125 0.02108 -0.006" euler=" 0 0 -1.4"> <!-- tensor de aluminio -->
+                <joint name="tensor_aluminio_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                <geom type="mesh" rgba="0.7 0.72 0.7 1" mesh="tensor_aluminio_11_60_correct_mesh"/>
+              </body>
+            </body>
+
+            <body name="femur" pos="0 0 0.006" euler="3.14159 0 4.1"> <!-- lila femur -->
+              <joint name="femur_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                <geom type="mesh" rgba="0.7 0.45 0.7 1" mesh="pieza3_pierna_right_mesh"/> 
+              
+              <body name="tibia" pos="0.11 0 -0.0077" euler="0 0 -2.425"> <!-- azul claro tibia -->
+                <joint name="tibia_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                <geom type="mesh" rgba="0.24 0.65 0.65 1" mesh="pieza4_pierna_right_mesh"/> 
+                
+                <geom type="mesh" rgba="0.15 0.15 0.15 1" mesh="foot_right_mesh" pos="0.11 0 -0.003" euler="0 0 -1.571"/> <!-- tpu -->
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <contact>
+    <exclude body1="shoulder_servo" body2="servo_u_1"/>
+    <exclude body1="homoplato" body2="femur"/>
+    <exclude body1="homoplato" body2="pieza1_pierna"/>
+    <exclude body1="femur" body2="pieza1_pierna"/>
+  </contact>
+
+  <equality>
+    <connect body1="pieza1_pierna" body2="homoplato" anchor="-0.028 0 0" solref="0.003" solimp="0.97 0.995 0.0001"/>
+    <connect body1="tibia" body2="tensor_aluminio" anchor="-0.03 0 0" solref="0.003" solimp="0.97 0.995 0.0001"/>
+  </equality>
+
+  <actuator>
+    <general joint="shoulder_joint" ctrlrange="-1.57 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+    <general joint="knee_joint" ctrlrange="-1.57 0" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+    <general joint="femur_joint" ctrlrange="-1.57 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+  </actuator>
+</mujoco>
