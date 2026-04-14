@@ -3,7 +3,7 @@ import mujoco
 from mjlab.actuator import BuiltinPositionActuatorCfg
 from mjlab.entity import EntityArticulationInfoCfg, EntityCfg
 
-QUAD_XML: Path = Path(__file__).parent / "xmls" / "quad_bot.xml"
+QUAD_XML: Path = Path(__file__).parent / "xmls" / "robot.xml"
 
 def get_spec() -> mujoco.MjSpec:
     return mujoco.MjSpec.from_file(str(QUAD_XML))
