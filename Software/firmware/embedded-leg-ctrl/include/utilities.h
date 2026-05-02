@@ -8,7 +8,8 @@ extern double getPreciseTime();
 bool deserializeJointStates(ucdrBuffer *ub, float target_joints[4][3], double *timestamp);
 extern void saveConfigCallback();
 extern void beginNetwork();
-extern bool shouldSafeConfig;
+extern bool shouldSaveConfig;
 uint32_t serializeImu(uint8_t *buffer, uint32_t size, const IMUdata &data, double timestamp);
 uint32_t serializeMag(uint8_t *buffer, uint32_t size, const IMUdata &data, double timestamp);
+uint32_t serializeJointStates(uint8_t *buffer, uint32_t size, const float target_joints[4][3], double timestamp);
 #endif

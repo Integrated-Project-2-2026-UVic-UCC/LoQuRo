@@ -1,7 +1,7 @@
 // IMU LIBRARY
 #ifndef _IMUMPU9250_H_
 #define _IMUMPU9250_H_
-#include <Wire.h>
+#include "config.h"
 
 struct measure
 {
@@ -17,7 +17,7 @@ struct IMUdata
     measure mag;
 };
 
-namespace Params
+namespace IMUCfg
 {
     static constexpr float res = 0.15;
     static constexpr uint8_t samples = 200;

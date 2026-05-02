@@ -1,6 +1,5 @@
 // IMPLEMENTATION OF IMUMPU9250 LIBRARY
 #include "IMUMPU9250.h"
-#include "config.h"
 
 IMUMPU9250::IMUMPU9250(uint8_t id, uint8_t mag_id)
 {
@@ -9,9 +8,6 @@ IMUMPU9250::IMUMPU9250(uint8_t id, uint8_t mag_id)
 };
 void IMUMPU9250::begin()
 {
-    Wire.begin(8, 9);
-    Wire.setClock(400000); // bus freq
-
     // reset config
     this->write(_id, 0x6B, 0x80);
     delay(100);
@@ -152,9 +148,9 @@ measure IMUMPU9250::getMag()
     int16_t raw_z = (raw_data[5] << 8) | raw_data[4];
 
     // apply calibration: (raw*factory_adjustment*conversion_factor-measured_offset)*measured_scale
-    mag.x = ((raw_y * _mag_adjustment.y * Params::res) - _mag_offset.x) * _mag_scale.x;
-    mag.y = ((raw_x * _mag_adjustment.x * Params::res) - _mag_offset.y) * _mag_scale.y;
-    mag.z = ((-raw_z * _mag_adjustment.z * Params::res) - _mag_offset.z) * _mag_scale.z;
+    mag.x = ((raw_y * _mag_adjustment.y * IMUCfg::res) - _mag_offset.x) * _mag_scale.x;
+    mag.y = ((raw_x * _mag_adjustment.x * IMUCfg::res) - _mag_offset.y) * _mag_scale.y;
+    mag.z = ((-raw_z * _mag_adjustment.z * IMUCfg::res) - _mag_offset.z) * _mag_scale.z; // in the sensor z is inverted
 
     return mag;
 };
@@ -168,7 +164,7 @@ void IMUMPU9250::calibrate()
 
     Serial.println("IMU: calibrating sensor... Please do not move and place it correctly");
 
-    for (int i = 0; i < Params::samples; i++)
+    for (int i = 0; i < IMUCfg::samples; i++)
     {
         measure a = this->getAccel();
         measure g = this->getGyro();
@@ -181,13 +177,13 @@ void IMUMPU9250::calibrate()
         delay(10); // simulate lectures at 100hz in 2 second due to sample number
     }
 
-    _accel_offset.x = ax / Params::samples;
-    _accel_offset.y = ay / Params::samples;
-    _accel_offset.z = (az / Params::samples) - 1.0f; // if is static, accel will be 1g in z
+    _accel_offset.x = ax / IMUCfg::samples;
+    _accel_offset.y = ay / IMUCfg::samples;
+    _accel_offset.z = (az / IMUCfg::samples) - 1.0f; // if is static, accel will be 1g in z
 
-    _gyro_offset.x = gx / Params::samples;
-    _gyro_offset.y = gy / Params::samples;
-    _gyro_offset.z = gz / Params::samples;
+    _gyro_offset.x = gx / IMUCfg::samples;
+    _gyro_offset.y = gy / IMUCfg::samples;
+    _gyro_offset.z = gz / IMUCfg::samples;
 
     Serial.println("IMU: Calibration completed");
 };
@@ -236,7 +232,7 @@ void IMUMPU9250::calibrateMag()
     float max_x = -10000.0, max_y = -10000.0, max_z = -10000.0;
     float min_x = 10000.0, min_y = 10000.0, min_z = 10000.0;
 
-    for (int i = 0; i < Params::mag_samples; i++)
+    for (int i = 0; i < IMUCfg::mag_samples; i++)
     {
         measure m = this->getMag();
         if (m.x > max_x)

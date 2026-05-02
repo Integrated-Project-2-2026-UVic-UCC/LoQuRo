@@ -13,3 +13,5 @@ float joint_states[4][3] = {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {
 
 // imu implementation
 IMUMPU9250 imu(0x68, 0x0C);
+
+multiAS5600 joints(8); // 12 AS5600 sensors for the 12 joints

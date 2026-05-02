@@ -4,6 +4,7 @@
 
 #include "PCA9685.h"
 #include "IMUMPU9250.h"
+#include "multiAS5600.h"
 
 struct Leg
 {
@@ -67,5 +68,7 @@ extern float joint_states[4][3];
 
 // imu definition
 extern IMUMPU9250 imu;
+
+extern multiAS5600 joints;
 
 #endif

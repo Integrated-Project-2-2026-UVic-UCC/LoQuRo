@@ -7,6 +7,7 @@ z_owned_session_t s;      // session object
 z_owned_subscriber_t sub; // subsciber object
 z_owned_publisher_t pub_imu;
 z_owned_publisher_t pub_mag;
+z_owned_publisher_t pub_encoder;
 
 bool initZenoh(const char *locator_str)
 {
@@ -76,6 +77,17 @@ bool initZenoh(const char *locator_str)
     if (z_declare_publisher(z_session_loan(&s), &pub_mag, z_view_keyexpr_loan(&ke_pub_mag), NULL) < 0)
     {
         Serial.println("ZENOH: Error declaring MAG publisher");
+        return false;
+    }
+
+    // declare zenoh mag publisher
+    Serial.print("ZENOH: Declaring Publisher on ");
+    Serial.println(ENCODER_KEYEXPR);
+    z_view_keyexpr_t ke_pub_encoder;
+    z_view_keyexpr_from_str_unchecked(&ke_pub_encoder, ENCODER_KEYEXPR);
+    if (z_declare_publisher(z_session_loan(&s), &pub_encoder, z_view_keyexpr_loan(&ke_pub_encoder), NULL) < 0)
+    {
+        Serial.println("ZENOH: Error declaring ENCODER publisher");
         return false;
     }
 

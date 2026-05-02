@@ -165,6 +165,54 @@ bool deserializeJointStates(ucdrBuffer *ub, float target_joints[4][3], double *t
     return true;
 }
 
+uint32_t serializeJointStates(uint8_t *buffer, uint32_t size, const float target_joints[4][3], double timestamp)
+{
+    // CDR header
+    buffer[0] = 0x00;
+    buffer[1] = 0x01; // Little Endian CDR
+    buffer[2] = 0x00;
+    buffer[3] = 0x00;
+
+    ucdrBuffer ub;
+    ucdr_init_buffer(&ub, buffer + 4, size - 4);
+
+    // Header stamp
+    uint32_t sec = (uint32_t)timestamp;
+    uint32_t nanosec = (uint32_t)((timestamp - sec) * 1e9);
+    ucdr_serialize_uint32_t(&ub, sec);
+    ucdr_serialize_uint32_t(&ub, nanosec);
+
+    // Frame id (empty string as it's not used)
+    ucdr_serialize_string(&ub, "");
+
+    // Names count (0 as names are not serialized)
+    uint32_t names_count = 0;
+    ucdr_serialize_uint32_t(&ub, names_count);
+
+    // Positions count (always 12 for 4 legs with 3 joints each)
+    uint32_t pos_count = 12;
+    ucdr_serialize_uint32_t(&ub, pos_count);
+
+    // Align buffer to 8 bytes para el array de doubles
+    ucdr_align_to(&ub, 8);
+
+    // Serialize joint positions
+    double positions[12];
+    for (int leg = 0; leg < 4; leg++)
+    {
+        positions[leg * 3 + 0] = (double)target_joints[leg][0];
+        positions[leg * 3 + 1] = (double)target_joints[leg][1];
+        positions[leg * 3 + 2] = (double)target_joints[leg][2];
+    }
+    ucdr_serialize_array_double(&ub, positions, 12);
+
+    uint32_t empty_count = 0;
+    ucdr_serialize_uint32_t(&ub, empty_count); // velocity count = 0
+    ucdr_serialize_uint32_t(&ub, empty_count); // effort count = 0
+
+    return 4 + ucdr_buffer_length(&ub);
+}
+
 uint32_t serializeImu(uint8_t *buffer, uint32_t size, const IMUdata &data, double timestamp)
 {
     // it gets auto headered, out of buffer
@@ -198,7 +246,7 @@ uint32_t serializeImu(uint8_t *buffer, uint32_t size, const IMUdata &data, doubl
     ucdr_serialize_array_double(&ub, cov_orient, 9);
 
     // Angular velocity (rad/s)
-    const double deg2rad = 3.14159265358979 / 180.0;
+    const double deg2rad = M_PI / 180.0;
     ucdr_serialize_double(&ub, (double)data.gyro.x * deg2rad);
     ucdr_serialize_double(&ub, (double)data.gyro.y * deg2rad);
     ucdr_serialize_double(&ub, (double)data.gyro.z * deg2rad);
