@@ -21,7 +21,7 @@
     <mesh name="pieza1_pierna_right_mesh" file="pieza1_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- amarillo -->
     <mesh name="pieza2_pierna_right_mesh" file="pieza2_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- verde -->
     <mesh name="pieza3_pierna_right_mesh" file="pieza3_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- lila femur -->
-    <mesh name="pieza4_pierna_right_mesh" file="pieza4_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- azul claro tibia -->
+    <mesh name="pieza4_pierna_right_mesh" file="pieza4_pierna_left_correct.stl" scale="0.001 0.001 0.001"/> <!-- azul claro tibia -->
   </asset>
 
   <worldbody>
@@ -38,11 +38,11 @@
           
           <body name="knee_servo" pos="-0.0200215 0.0230215 -0.0200215" euler="-1.571 0 3.14159"> <!-- knee servo -->
             <geom type="mesh" rgba="0.3 0.33 0.38 1" mesh="servo_sin_cabezal_mesh"/>
-            <body name="servo_u_2" pos="0 0 0.005" euler="0 0 4.7">  <!--1.570796     90º--> <!-- 3.13 -->
-              <joint name="knee_joint" pos="0 0 0" axis="0 0 1" range="-1.57 0" armature="0.004" damping="0.12" frictionloss="0.003"/>
+            <body name="servo_u_2" pos="0 0 0.005" euler="0 0 4.0">  <!-- estaba en 4.7 -->
+              <joint name="knee_joint" pos="0 0 0" axis="0 0 1" range="-0.87 0.7" armature="0.004" damping="0.12" frictionloss="0.003"/> <!-- range cambiado a range="-1.57 0" -->
               <geom type="mesh" rgba="0.86 0.24 0.24 1" mesh="cad_servo20kg_p4_correct_mesh"/>
               
-              <body name="pieza1_pierna" pos="0.00 -0.02451 0.0093" euler="0 0 2.39"> <!-- amarillo -->
+              <body name="pieza1_pierna" pos="0.00 -0.02451 0.0093" euler="0 0 3.09"> <!-- amarillo  estaba en 2.39 -->
                 <joint name="pieza1_pierna_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/> 
                 <geom type="mesh" rgba="0.96 0.82 0.18 1" mesh="pieza1_pierna_right_mesh"/> 
               </body>
@@ -52,25 +52,25 @@
           <body name="hip_servo" pos="0 0.0230215 -0.04055" euler="-1.571 0 0"> <!-- hip servo -->
             <geom type="mesh" rgba="0.44 0.29 0.58 1" mesh="servo_sin_cabezal_mesh"/>
             
-            <body name="homoplato" pos="0 0 0" euler="3.14159 0 -2.328"> <!-- verde -->
+            <body name="homoplato" pos="0 0 0" euler="3.14159 0 -1.628"> <!-- verde  estaba en -2.328-->
               <joint name="shoulder_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
               <geom type="mesh" rgba="0.16 0.72 0.45 1" mesh="pieza2_pierna_right_mesh"/> 
               
-              <body name="tensor_aluminio" pos="0.02125 0.02108 -0.006" euler=" 0 0 -1.4"> <!-- tensor de aluminio -->
+              <body name="tensor_aluminio" pos="0.02125 0.02108 -0.006" euler=" 0 0 -1.5"> <!-- tensor de aluminio -->
                 <joint name="tensor_aluminio_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
                 <geom type="mesh" rgba="0.7 0.72 0.7 1" mesh="tensor_aluminio_11_60_correct_mesh"/>
               </body>
             </body>
 
-            <body name="femur" pos="0 0 0.006" euler="3.14159 0 4.1"> <!-- lila femur -->
+            <body name="femur" pos="0 0 0.006" euler="3.14159 0 -1.5708"> <!-- lila femur -->
               <joint name="femur_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
                 <geom type="mesh" rgba="0.7 0.45 0.7 1" mesh="pieza3_pierna_right_mesh"/> 
               
-              <body name="tibia" pos="0.11 0 -0.0077" euler="0 0 -2.425"> <!-- azul claro tibia -->
+              <body name="tibia" pos="0.11 0 -0.0077" euler="3.14159 0 -4"> <!-- azul claro tibia -2.425 -->
                 <joint name="tibia_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
                 <geom type="mesh" rgba="0.24 0.65 0.65 1" mesh="pieza4_pierna_right_mesh"/> 
                 
-                <geom type="mesh" rgba="0.15 0.15 0.15 1" mesh="foot_right_mesh" pos="0.11 0 -0.003" euler="0 0 -1.571"/> <!-- tpu -->
+                <geom type="mesh" rgba="0.15 0.15 0.15 1" mesh="foot_right_mesh" pos="0.11 0 0.003" euler="0 0 -1.571"/> <!-- tpu -->
               </body>
             </body>
           </body>
@@ -93,7 +93,17 @@
 
   <actuator>
     <general joint="shoulder_joint" ctrlrange="-1.57 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
-    <general joint="knee_joint" ctrlrange="-1.57 0" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+    <general joint="knee_joint" ctrlrange="-0.87 0.7" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
     <general joint="femur_joint" ctrlrange="-1.57 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
   </actuator>
+
+  <keyframe>
+    <key
+      time="4295.52"
+      qpos="-0.707189 -0.869928 0.903679 0.898261 -0.655465 0.264632 -0.5936"
+      qvel="5.13884e-14 4.63688e-14 1.52148e-14 -4.16706e-14 2.40878e-14 8.32143e-15 2.90234e-14"
+      act="-0.7065 -0.87 0.2669"
+      ctrl="-0.7065 -0.87 0.2669"
+    />
+  </keyframe>
 </mujoco>

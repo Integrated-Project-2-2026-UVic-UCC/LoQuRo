@@ -1,0 +1,343 @@
+<mujoco model="loquro_quadruped">
+  <compiler angle="radian" meshdir="assets/"/>
+
+  <option timestep="0.0005" integrator="implicitfast" iterations="80" ls_iterations="30" gravity="0 0 -9.81"/>
+
+  <default>
+    <default class="visual">
+        <geom contype="0" conaffinity="0" group="1" />
+    </default>
+
+    <default class="collision">
+        <geom group="3" rgba="0.3 0.3 0.9 0.5" contype="1" conaffinity="1" margin="0.001" solref="-10000 -100" solimp="0.95 0.99 0.001 0.5 2"/>
+    </default>
+  </default>
+
+  <visual>
+    <global offwidth="1692" offheight="936"/>
+    <headlight ambient="0.45 0.45 0.45" diffuse="0.75 0.75 0.75" specular="0.15 0.15 0.15"/>
+  </visual>
+
+  <asset>
+    <texture type="skybox" colorspace="auto" builtin="gradient" rgb1="0.95 0.97 1" rgb2="0.65 0.78 0.92" width="256" height="1536"/>
+    <material name="ground_mat" rgba="0.84 0.87 0.82 1"/>
+    
+    <!-- Mallas Comunes -->
+    <mesh name="base_box_mesh" file="base_dog_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 72g -->
+    <mesh name="cad_servo20kg_p4_correct_mesh" file="cad_servo20kg_p4_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 66g -->
+    <mesh name="servo_sin_cabezal_mesh" file="servo_sin_cabezal.stl" scale="0.001 0.001 0.001"/> <!-- masa: 60g -->
+    <mesh name="tensor_aluminio_11_60_correct_mesh" file="tensor_aluminio_11_60_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 3g -->
+    <mesh name="union_servo_correct_mesh" file="union_servo_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 1g -->
+
+    <!-- Mallas Izquierdas -->
+    <mesh name="foot_left_mesh" file="foot_left.stl" scale="0.001 0.001 0.001"/> <!-- masa:  -->
+    <mesh name="hombro_pierna_correct_mesh" file="hombro_pierna_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 9.48g -->
+    <mesh name="pieza1_pierna_left_correct_mesh" file="pieza1_pierna_left_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 2g -->
+    <mesh name="pieza2_pierna_left_correct_mesh" file="pieza2_pierna_left_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 4g -->
+    <mesh name="pieza3_pierna_felt_correct_mesh" file="pieza3_pierna_felt_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 13g -->
+    <mesh name="pieza4_pierna_left_correct_mesh" file="pieza4_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 6g -->
+
+    <!-- Mallas Derechas -->
+    <mesh name="foot_right_mesh" file="foot_left_right.stl" scale="0.001 0.001 0.001"/> <!-- masa:  -->
+    <mesh name="hombro_pierna_right_mesh" file="hombro_pierna_correct_r.stl" scale="0.001 0.001 0.001"/> <!-- masa: 9.48g -->
+    <mesh name="pieza1_pierna_right_mesh" file="pieza1_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 2g -->
+    <mesh name="pieza2_pierna_right_mesh" file="pieza2_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 4g -->
+    <mesh name="pieza3_pierna_right_mesh" file="pieza3_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 13g -->
+    <mesh name="pieza4_pierna_right_mesh" file="pieza4_pierna_left_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 6g -->
+  </asset>
+
+  <worldbody>
+    <geom name="ground" size="3 3 0.1" type="plane" material="ground_mat" group="0"/>
+    <light pos="0 0 5" dir="0 0 -1"/>
+    
+    <body name="trunk" pos="0 0 0.1" euler=" 0 0 0">
+      <freejoint name="root"/>
+      <geom class="visual" type="mesh" name="trunk_collision" size="0.15 0.075 0.025" mass="0.072" rgba="0.18 0.18 0.2 1" mesh="base_box_mesh"/>
+      <geom class="collision" type="box" size="0.15 0.075 0.005" pos="0 0 0.001" euler="0 0 0"/>
+      
+      <site name="imu_site" pos="0 0 0" size="0.01" type="sphere" rgba="1 1 1 1"/>
+      <site name="FL" pos="-0.108 0.01 0.055" size="0.01" rgba="1 0 0 0"/>
+      <site name="FR" pos="-0.108 0.01 -0.055" size="0.01" rgba="0 1 0 0"/>
+      <site name="RL" pos="0.0825 0.01 0.055" size="0.01" rgba="0 0 1 0"/>
+      <site name="RR" pos="0.0825 0.01 -0.055" size="0.01" rgba="1 1 0 0"/>
+
+      <!-- ================= PATA DELANTERA IZQUIERDA (FL) ================= -->
+      <body name="fl_mount" pos="0.108 0.055 0.01" euler="0 0 3.14159">
+        <body name="fl_shoulder_servo" pos="0 0 0" quat="0.000563312 0.707388 0.000562864 0.706825">
+          <geom class="visual" type="mesh" rgba="0.18 0.21 0.25 1" mesh="servo_sin_cabezal_mesh"/>
+          <body name="fl_servo_u_1" pos="0 0 0.005" euler="0 0 -0.7023">
+            <joint name="fl_shoulder_joint" pos="0 0 0" axis="0 0 1" range="-0.8685 2.2731" armature="0.004" damping="0.12" frictionloss="0.003"/>
+            <geom class="visual" type="mesh" rgba="0.94 0.55 0.2 1" mesh="union_servo_correct_mesh"/>
+            <body name="fl_hombro_pierna" pos="0 0 0.002">
+              <geom class="visual" type="mesh" rgba="0.15 0.55 0.78 1" mesh="hombro_pierna_correct_mesh"/>
+              <body name="fl_knee_servo" pos="-0.02 0.023 0.02" quat="0.707388 -0.706825 0 0">
+                <geom class="visual" type="mesh" rgba="0.3 0.33 0.38 1" mesh="servo_sin_cabezal_mesh"/>
+                <body name="fl_servo_u_2" pos="0 0 0.005" euler="0 0 -4.610055">
+                  <joint name="fl_knee_joint" pos="0 0 0" axis="0 0 1" range="-1.57 1.57" armature="0.004" damping="0.12" frictionloss="0.003"/>
+                  <geom class="visual" type="mesh" rgba="0.86 0.24 0.24 1" mesh="cad_servo20kg_p4_correct_mesh"/>
+                  <body name="fl_pieza1_pierna" pos="-0.022 -0.042 0.001" euler="0 0 3.813813">
+                    <joint name="fl_pieza1_pierna_joint" pos="-0.028 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                    <geom class="visual" type="mesh" rgba="0.96 0.82 0.18 1" mesh="pieza1_pierna_left_correct_mesh"/>
+                    <geom class="collision" type="capsule" size="0.0055 0.015" pos="-0.014 0 0.004" euler="1.57 1.57 0"/>
+                  </body>
+                </body>
+              </body>
+              <body name="fl_hip_servo" pos="0 0.023 0.04" quat="9.38559e-07 -9.37812e-07 0.706825 0.707388">
+                <geom class="visual" type="mesh" rgba="0.44 0.29 0.58 1" mesh="servo_sin_cabezal_mesh"/>
+                <body name="fl_homoplato" euler="0 0 0.881112">
+                  <joint name="fl_shoulder_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                  <geom class="visual" type="mesh" rgba="0.16 0.72 0.45 1" mesh="pieza2_pierna_left_correct_mesh"/>
+                  <body name="fl_tensor_aluminio" pos="0.0213 0.0211 0.0067" euler="0 0 -2.289192">
+                    <joint name="fl_tensor_aluminio_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                    <geom class="visual" type="mesh" rgba="0.7 0.72 0.7 1" mesh="tensor_aluminio_11_60_correct_mesh"/>
+                    <geom class="collision" type="capsule" size="0.005 0.038" pos="0 0.055 0" euler="1.57 0 0"/>
+                  </body>
+                </body>
+                <body name="fl_femur" pos="0 0 0.006" euler="0 0 0.1574">
+                  <joint name="fl_femur_joint" pos="0 0 0" axis="0 0 1" range="-1.7282 1.4134" damping="0.03" frictionloss="0.0002"/>
+                  <geom class="visual" type="mesh" rgba="0.7 0.45 0.7 1" mesh="pieza3_pierna_felt_correct_mesh"/>
+                  <geom class="collision" type="capsule" size="0.005 0.038" pos="0.06 0.008 0.001" euler="1.57 1.5 0"/>
+                  <body name="fl_tibia" pos="0.11 0 0.0076" euler="3.14159 0 1.586181">
+                    <joint name="fl_tibia_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                    <geom class="visual" type="mesh" rgba="0.24 0.65 0.65 1" mesh="pieza4_pierna_left_correct_mesh"/>
+                    <geom class="visual" name="fl_foot_collision" type="mesh" rgba="0.15 0.15 0.15 1" mesh="foot_left_mesh" pos="0.11 0 -0.003" euler="0 0 -1.57"/>
+                    <geom class="collision" name="foot_front_left" type="sphere" size="0.015" pos="0.11 0 -0.003"/>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+
+      <!-- ================= PATA DELANTERA DERECHA (FR) ================= -->
+      <body name="fr_mount" pos="0.108 -0.055 0.01" euler="0 0 3.14159">
+        <body name="fr_shoulder_servo" pos="0 0 0" euler="0 1.5708 0">
+          <geom class="visual" type="mesh" rgba="0.18 0.21 0.25 1" mesh="servo_sin_cabezal_mesh"/>
+          <body name="fr_servo_u_1" pos="0 0 0.005" euler="0 0 2.434">
+            <joint name="fr_shoulder_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" armature="0.004" damping="0.12" frictionloss="0.003"/>
+            <geom class="visual" type="mesh" rgba="0.94 0.55 0.2 1" mesh="union_servo_correct_mesh"/>
+            <body name="fr_hombro_pierna" pos="0 0 0.002" euler="0 3.14159 3.14159">
+              <geom class="visual" type="mesh" rgba="0.15 0.55 0.78 1" mesh="hombro_pierna_right_mesh"/>
+              <body name="fr_knee_servo" pos="-0.0200215 0.0230215 -0.0200215" euler="-1.571 0 3.14159">
+                <geom class="visual" type="mesh" rgba="0.3 0.33 0.38 1" mesh="servo_sin_cabezal_mesh"/>
+                <body name="fr_servo_u_2" pos="0 0 0.005" euler="0 0 3.13">
+                  <joint name="fr_knee_joint" pos="0 0 0" axis="0 0 1" range="0 1.57" armature="0.004" damping="0.12" frictionloss="0.003"/>
+                  <geom class="visual" type="mesh" rgba="0.86 0.24 0.24 1" mesh="cad_servo20kg_p4_correct_mesh"/>
+                  <body name="fr_pieza1_pierna" pos="0.00 -0.02451 0.0093" euler="0 0 3.993">
+                    <joint name="fr_pieza1_pierna_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/> 
+                    <geom class="visual" type="mesh" rgba="0.96 0.82 0.18 1" mesh="pieza1_pierna_right_mesh"/> 
+                    <geom class="collision" type="capsule" size="0.0055 0.015" pos="-0.014 0 -0.004" euler="1.57 1.57 0"/>
+                  </body>
+                </body>
+              </body>
+              <body name="fr_hip_servo" pos="0 0.0230215 -0.04055" euler="-1.571 0 0">
+                <geom class="visual" type="mesh" rgba="0.44 0.29 0.58 1" mesh="servo_sin_cabezal_mesh"/>
+                <body name="fr_homoplato" pos="0 0 0" euler="3.14159 0 -0.729">
+                  <joint name="fr_shoulder_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                  <geom class="visual" type="mesh" rgba="0.16 0.72 0.45 1" mesh="pieza2_pierna_right_mesh"/> 
+                  <body name="fr_tensor_aluminio" pos="0.02125 0.02108 -0.006" euler=" 0 0 -2.155">
+                    <joint name="fr_tensor_aluminio_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                    <geom class="visual" type="mesh" rgba="0.7 0.72 0.7 1" mesh="tensor_aluminio_11_60_correct_mesh"/>
+                    <geom class="collision" type="capsule" size="0.005 0.038" pos="0 0.055 0" euler="1.57 0 0"/>
+                  </body>
+                </body>
+                <body name="fr_femur" pos="0 0 0.006" euler="3.14159 0 -1.306">
+                  <joint name="fr_femur_joint" pos="0 0 0" axis="0 0 -1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                  <geom class="visual" type="mesh" rgba="0.7 0.45 0.7 1" mesh="pieza3_pierna_right_mesh"/> 
+                  <geom class="collision" type="capsule" size="0.005 0.038" pos="0.06 0.008 0.00" euler="1.57 1.5 0"/>
+                  <body name="fr_tibia" pos="0.11 0 -0.0077" euler="3.14159 0 -4.5936">
+                    <joint name="fr_tibia_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                    <geom class="visual" type="mesh" rgba="0.24 0.65 0.65 1" mesh="pieza4_pierna_right_mesh"/> 
+                    <geom class="visual" name="fr_foot_collision" type="mesh" rgba="0.15 0.15 0.15 1" mesh="foot_right_mesh" pos="0.11 0 0.003" euler="0 0 -1.571"/>
+                    <geom class="collision" name="foot_front_right" type="sphere" size="0.015" pos="0.11 0 0.003"/>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+
+      <!-- ================= PATA TRASERA IZQUIERDA (RL) ================= -->
+      <body name="rl_mount" pos="-0.0825 0.055 0.01" euler="0 0 3.14159">
+        <body name="rl_shoulder_servo" pos="0 0 0" quat="0.000563312 0.707388 0.000562864 0.706825">
+          <geom class="visual" type="mesh" rgba="0.18 0.21 0.25 1" mesh="servo_sin_cabezal_mesh"/>
+          <body name="rl_servo_u_1" pos="0 0 0.005" euler="0 0 -0.7023">
+            <joint name="rl_shoulder_joint" pos="0 0 0" axis="0 0 1" range="-0.8685 2.2731" armature="0.004" damping="0.12" frictionloss="0.003"/>
+            <geom class="visual" type="mesh" rgba="0.94 0.55 0.2 1" mesh="union_servo_correct_mesh"/>
+            <body name="rl_hombro_pierna" pos="0 0 0.002">
+              <geom class="visual" type="mesh" rgba="0.15 0.55 0.78 1" mesh="hombro_pierna_correct_mesh"/>
+              <body name="rl_knee_servo" pos="-0.02 0.023 0.02" quat="0.707388 -0.706825 0 0">
+                <geom class="visual" type="mesh" rgba="0.3 0.33 0.38 1" mesh="servo_sin_cabezal_mesh"/>
+                <body name="rl_servo_u_2" pos="0 0 0.005" euler="0 0 -4.610055">
+                  <joint name="rl_knee_joint" pos="0 0 0" axis="0 0 1" range="-1.57 1.57" armature="0.004" damping="0.12" frictionloss="0.003"/>
+                  <geom class="visual" type="mesh" rgba="0.86 0.24 0.24 1" mesh="cad_servo20kg_p4_correct_mesh"/>
+                  <body name="rl_pieza1_pierna" pos="-0.022 -0.042 0.001" euler="0 0 3.813813">
+                    <joint name="rl_pieza1_pierna_joint" pos="-0.028 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                    <geom class="visual" type="mesh" rgba="0.96 0.82 0.18 1" mesh="pieza1_pierna_left_correct_mesh"/>
+                    <geom class="collision" type="capsule" size="0.0055 0.015" pos="-0.014 0 0.004" euler="1.57 1.57 0"/>
+                  </body>
+                </body>
+              </body>
+              <body name="rl_hip_servo" pos="0 0.023 0.04" quat="9.38559e-07 -9.37812e-07 0.706825 0.707388">
+                <geom class="visual" type="mesh" rgba="0.44 0.29 0.58 1" mesh="servo_sin_cabezal_mesh"/>
+                <body name="rl_homoplato" euler="0 0 0.881112">
+                  <joint name="rl_shoulder_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                  <geom class="visual" type="mesh" rgba="0.16 0.72 0.45 1" mesh="pieza2_pierna_left_correct_mesh"/>
+                  <body name="rl_tensor_aluminio" pos="0.0213 0.0211 0.0067" euler="0 0 -2.289192">
+                    <joint name="rl_tensor_aluminio_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                    <geom class="visual" type="mesh" rgba="0.7 0.72 0.7 1" mesh="tensor_aluminio_11_60_correct_mesh"/>
+                    <geom class="collision" type="capsule" size="0.005 0.038" pos="0 0.055 0" euler="1.57 0 0"/>
+                  </body>
+                </body>
+                <body name="rl_femur" pos="0 0 0.006" euler="0 0 0.1574">
+                  <joint name="rl_femur_joint" pos="0 0 0" axis="0 0 1" range="-1.7282 1.4134" damping="0.03" frictionloss="0.0002"/>
+                  <geom class="visual" type="mesh" rgba="0.7 0.45 0.7 1" mesh="pieza3_pierna_felt_correct_mesh"/>
+                  <geom class="collision" type="capsule" size="0.005 0.038" pos="0.06 0.008 0.001" euler="1.57 1.5 0"/>
+                  <body name="rl_tibia" pos="0.11 0 0.0076" euler="3.14159 0 1.586181">
+                    <joint name="rl_tibia_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                    <geom class="visual" type="mesh" rgba="0.24 0.65 0.65 1" mesh="pieza4_pierna_left_correct_mesh"/>
+                    <geom class="visual" name="rl_foot_collision" type="mesh" rgba="0.15 0.15 0.15 1" mesh="foot_left_mesh" pos="0.11 0 -0.003" euler="0 0 -1.57"/>
+                    <geom class="collision" name="foot_back_left" type="sphere" size="0.015" pos="0.11 0 -0.003"/>                  
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+
+      <!-- ================= PATA TRASERA DERECHA (RR) ================= -->
+      <body name="rr_mount" pos="-0.0825 -0.055 0.01" euler="0 0 3.14159">
+        <body name="rr_shoulder_servo" pos="0 0 0" euler="0 1.5708 0">
+          <geom class="visual" type="mesh" rgba="0.18 0.21 0.25 1" mesh="servo_sin_cabezal_mesh"/>
+          <body name="rr_servo_u_1" pos="0 0 0.005" euler="0 0 2.434">
+            <joint name="rr_shoulder_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" armature="0.004" damping="0.12" frictionloss="0.003"/>
+            <geom class="visual" type="mesh" rgba="0.94 0.55 0.2 1" mesh="union_servo_correct_mesh"/>
+            <body name="rr_hombro_pierna" pos="0 0 0.002" euler="0 3.14159 3.14159">
+              <geom class="visual" type="mesh" rgba="0.15 0.55 0.78 1" mesh="hombro_pierna_right_mesh"/>
+              <body name="rr_knee_servo" pos="-0.0200215 0.0230215 -0.0200215" euler="-1.571 0 3.14159">
+                <geom class="visual" type="mesh" rgba="0.3 0.33 0.38 1" mesh="servo_sin_cabezal_mesh"/>
+                <body name="rr_servo_u_2" pos="0 0 0.005" euler="0 0 3.13">
+                  <joint name="rr_knee_joint" pos="0 0 0" axis="0 0 1" range="0 1.57" armature="0.004" damping="0.12" frictionloss="0.003"/>
+                  <geom class="visual" type="mesh" rgba="0.86 0.24 0.24 1" mesh="cad_servo20kg_p4_correct_mesh"/>
+                  <body name="rr_pieza1_pierna" pos="0.00 -0.02451 0.0093" euler="0 0 3.993">
+                    <joint name="rr_pieza1_pierna_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/> 
+                    <geom class="visual" type="mesh" rgba="0.96 0.82 0.18 1" mesh="pieza1_pierna_right_mesh"/> 
+                    <geom class="collision" type="capsule" size="0.0055 0.015" pos="-0.014 0 -0.004" euler="1.57 1.57 0"/>
+                  </body>
+                </body>
+              </body>
+              <body name="rr_hip_servo" pos="0 0.0230215 -0.04055" euler="-1.571 0 0">
+                <geom class="visual" type="mesh" rgba="0.44 0.29 0.58 1" mesh="servo_sin_cabezal_mesh"/>
+                <body name="rr_homoplato" pos="0 0 0" euler="3.14159 0 -0.729">
+                  <joint name="rr_shoulder_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                  <geom class="visual" type="mesh" rgba="0.16 0.72 0.45 1" mesh="pieza2_pierna_right_mesh"/> 
+                  <body name="rr_tensor_aluminio" pos="0.02125 0.02108 -0.006" euler=" 0 0 -2.155">
+                    <joint name="rr_tensor_aluminio_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                    <geom class="visual" type="mesh" rgba="0.7 0.72 0.7 1" mesh="tensor_aluminio_11_60_correct_mesh"/>
+                    <geom class="collision" type="capsule" size="0.005 0.038" pos="0 0.055 0" euler="1.57 0 0"/>
+                  </body>
+                </body>
+                <body name="rr_femur" pos="0 0 0.006" euler="3.14159 0 -1.306">
+                  <joint name="rr_femur_joint" pos="0 0 0" axis="0 0 -1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                  <geom class="visual" type="mesh" rgba="0.7 0.45 0.7 1" mesh="pieza3_pierna_right_mesh"/> 
+                  <geom class="collision" type="capsule" size="0.005 0.038" pos="0.06 0.008 0.00" euler="1.57 1.5 0"/>
+                  <body name="rr_tibia" pos="0.11 0 -0.0077" euler="3.14159 0 -4.5936">
+                    <joint name="rr_tibia_passive_joint" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" damping="0.03" frictionloss="0.0002"/>
+                    <geom class="visual" type="mesh" rgba="0.24 0.65 0.65 1" mesh="pieza4_pierna_right_mesh"/> 
+                    <geom class="visual" name="rr_foot_collision" type="mesh" rgba="0.15 0.15 0.15 1" mesh="foot_right_mesh" pos="0.11 0 0.003" euler="0 0 -1.571"/>
+                    <geom class="collision" name="foot_back_right" type="sphere" size="0.015" pos="0.11 0 0.003"/>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <!-- ================= CONTACTOS Y EXCLUSIONES ================= -->
+  <contact>
+    <exclude body1="trunk" body2="fl_mount"/>
+    <exclude body1="trunk" body2="rl_mount"/>
+    <exclude body1="trunk" body2="fr_mount"/>
+    <exclude body1="trunk" body2="rr_mount"/>
+
+    <exclude body1="fl_shoulder_servo" body2="fl_servo_u_1"/>
+    <exclude body1="fl_pieza1_pierna" body2="fl_homoplato"/>
+    <exclude body1="fl_pieza1_pierna" body2="fl_femur"/>
+    <exclude body1="fl_homoplato" body2="fl_femur"/>
+
+    <exclude body1="fr_shoulder_servo" body2="fr_servo_u_1"/>
+    <exclude body1="fr_pieza1_pierna" body2="fr_homoplato"/>
+    <exclude body1="fr_pieza1_pierna" body2="fr_femur"/>
+    <exclude body1="fr_homoplato" body2="fr_femur"/>
+
+    <exclude body1="rl_shoulder_servo" body2="rl_servo_u_1"/>
+    <exclude body1="rl_pieza1_pierna" body2="rl_homoplato"/>
+    <exclude body1="rl_pieza1_pierna" body2="rl_femur"/>
+    <exclude body1="rl_homoplato" body2="rl_femur"/>
+
+    <exclude body1="rr_shoulder_servo" body2="rr_servo_u_1"/>
+    <exclude body1="rr_pieza1_pierna" body2="rr_homoplato"/>
+    <exclude body1="rr_pieza1_pierna" body2="rr_femur"/>
+    <exclude body1="rr_homoplato" body2="rr_femur"/>
+  </contact>
+
+  <!-- ================= CINEMÁTICA CERRADA ================= -->
+  <equality>
+    <connect body1="fl_pieza1_pierna" body2="fl_homoplato" anchor="0 0 0" solref="0.003" solimp="0.97 0.995 0.0001"/>
+    <connect body1="fl_tibia" body2="fl_tensor_aluminio" anchor="-0.03 0 0" solref="0.003" solimp="0.97 0.995 0.0001"/>
+
+    <connect body1="fr_pieza1_pierna" body2="fr_homoplato" anchor="-0.028 0 0" solref="0.003" solimp="0.97 0.995 0.0001"/>
+    <connect body1="fr_tibia" body2="fr_tensor_aluminio" anchor="-0.03 0 0" solref="0.003" solimp="0.97 0.995 0.0001"/>
+
+    <connect body1="rl_pieza1_pierna" body2="rl_homoplato" anchor="0 0 0" solref="0.003" solimp="0.97 0.995 0.0001"/>
+    <connect body1="rl_tibia" body2="rl_tensor_aluminio" anchor="-0.03 0 0" solref="0.003" solimp="0.97 0.995 0.0001"/>
+
+    <connect body1="rr_pieza1_pierna" body2="rr_homoplato" anchor="-0.028 0 0" solref="0.003" solimp="0.97 0.995 0.0001"/>
+    <connect body1="rr_tibia" body2="rr_tensor_aluminio" anchor="-0.03 0 0" solref="0.003" solimp="0.97 0.995 0.0001"/>
+  </equality>
+
+  <!-- Sensores de la IMU -->
+  <sensor>
+    <accelerometer name="imu_accel" site="imu_site"/>
+    <gyro name="imu_ang_vel" site="imu_site"/>
+    <velocimeter name="imu_lin_vel" site="imu_site"/>
+  </sensor>
+
+  <actuator>
+    <general joint="fl_shoulder_joint" ctrlrange="0 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+    <general joint="fl_knee_joint" ctrlrange="0 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+    <general joint="fl_femur_joint" ctrlrange="0 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+
+    <general joint="fr_shoulder_joint" ctrlrange="0 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+    <general joint="fr_knee_joint" ctrlrange="0 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+    <general joint="fr_femur_joint" ctrlrange="0 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+
+    <general joint="rl_shoulder_joint" ctrlrange="0 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+    <general joint="rl_knee_joint" ctrlrange="0 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+    <general joint="rl_femur_joint" ctrlrange="0 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+
+    <general joint="rr_shoulder_joint" ctrlrange="0 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+    <general joint="rr_knee_joint" ctrlrange="0 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+    <general joint="rr_femur_joint" ctrlrange="0 1.57" forcerange="-8 8" dyntype="filterexact" dynprm="0.02 0 0 0 0 0 0 0 0 0" biastype="affine" gainprm="18" biasprm="0 -18"/>
+  </actuator>
+
+
+  <keyframe>
+    <key
+    time="87.5"
+    qpos="0.0554758 0.15519 0.143126 0.85424 0.0312155 -0.00129183 -0.518939 0.670192 0.66342 -0.667257 0.668694 0.088383 0.75597 0.0912372 0.757397 0.826816 -0.859397 -0.859837 0.0815241 0.780138 0.0831724 0.697523 0.70705 -0.711223 0.715073 0.0490412 0.763478 0.0507179 0.750524 0.827617 -0.860174 -0.857645 0.0484071 0.810377 0.0486253"
+    qvel="3.36789e-15 1.35316e-15 -5.19973e-15 -2.41819e-14 -3.98909e-15 3.4669e-14 -4.67177e-14 1.79488e-14 -8.13817e-15 -3.06952e-15 2.67372e-15 3.64762e-15 3.05122e-14 5.14278e-14 -1.6827e-14 -1.01359e-14 -1.52205e-14 1.89189e-14 -1.46064e-14 -4.84882e-14 3.88201e-14 3.38794e-14 4.30815e-14 5.7201e-14 -5.55112e-14 -3.63238e-14 1.02351e-13 -4.80079e-14 7.24e-15 -4.60357e-14 -4.37464e-14 -3.15377e-15 -3.24759e-14 -3.54841e-14"
+    act="0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7"
+    ctrl="0.69865 0.7065 0.7065 0.73005 0.77715 0.8478 0.7065 0.7222 0.74575 0.74575 0.8164 0.82425"
+    />
+  </keyframe>
+
+
+
+</mujoco>

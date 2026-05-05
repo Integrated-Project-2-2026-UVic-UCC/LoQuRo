@@ -1,0 +1,9 @@
+[project]
+name = "loquro-lab"
+version = "0.1.0"
+description = "Python package to play with the LoQuRo model"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mujoco>=3.8.0",
+]
