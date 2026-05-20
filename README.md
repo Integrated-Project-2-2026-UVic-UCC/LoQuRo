@@ -2,7 +2,7 @@
 <div align="center">
   
   <br>
-  <h1>🐕 Quad-Bot</h1>
+  <h1>🐕 LoQuRo</h1>
   <p>
     <b>Design. Build. Train.</b> <br>
     A Mechatronics Engineering project exploring Reinforcement Learning in Robotics.
