@@ -1,9 +1,17 @@
 [project]
-name = "loquro-lab"
+name = "loquro_lab"
 version = "0.1.0"
 description = "Python package to play with the LoQuRo model"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "mjlab",
     "mujoco>=3.8.0",
+    "scipy>=1.17.1",
 ]
+
+[project.entry-points."mjlab.tasks"]
+quad_bot = "loquro_lab"
+
+[tool.uv.sources]
+mjlab = { git = "https://github.com/mujocolab/mjlab.git" }
