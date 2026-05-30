@@ -23,7 +23,7 @@
     <material name="ground_mat" rgba="0.84 0.87 0.82 1"/>
     
     <!-- Mallas Comunes -->
-    <mesh name="base_box_mesh" file="base_dog_correct_con_p_trasera.stl" scale="0.001 0.001 0.001"/> <!-- masa: 72g -->
+    <mesh name="base_box_mesh" file="base_dog_correct_con_p_trasera.stl" scale="0.001 0.001 0.001"/> <!-- masa: 72 + 36g -->
     <mesh name="cad_servo20kg_p4_correct_mesh" file="cad_servo20kg_p4_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 66g -->
     <mesh name="servo_sin_cabezal_mesh" file="servo_sin_cabezal.stl" scale="0.001 0.001 0.001"/> <!-- masa: 60g -->
     <mesh name="tensor_aluminio_11_60_correct_mesh" file="tensor_aluminio_11_60_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 3g -->
@@ -31,7 +31,7 @@
 
     <!-- Mallas Izquierdas -->
     <mesh name="foot_left_mesh" file="foot_left.stl" scale="0.001 0.001 0.001"/> <!-- masa: asignado 10g -->
-    <mesh name="hombro_pierna_correct_mesh" file="hombro_pierna_correct_encoders.stl" scale="0.001 0.001 0.001"/> <!-- masa: 9.48g -->
+    <mesh name="hombro_pierna_correct_mesh" file="hombro_pierna_correct_encoders.stl" scale="0.001 0.001 0.001"/> <!-- masa: 56g -->
     <mesh name="pieza1_pierna_left_correct_mesh" file="pieza1_pierna_left_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 2g -->
     <mesh name="pieza2_pierna_left_correct_mesh" file="pieza2_pierna_left_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 4g -->
     <mesh name="pieza3_pierna_felt_correct_mesh" file="pieza3_pierna_felt_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 13g -->
@@ -39,7 +39,7 @@
 
     <!-- Mallas Derechas -->
     <mesh name="foot_right_mesh" file="foot_left_right.stl" scale="0.001 0.001 0.001"/> <!-- masa: asignado 10g -->
-    <mesh name="hombro_pierna_right_mesh" file="hombro_pierna_correct_r_encoders.stl" scale="0.001 0.001 0.001"/> <!-- masa: 9.48g -->
+    <mesh name="hombro_pierna_right_mesh" file="hombro_pierna_correct_r_encoders.stl" scale="0.001 0.001 0.001"/> <!-- masa: 56g -->
     <mesh name="pieza1_pierna_right_mesh" file="pieza1_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 2g -->
     <mesh name="pieza2_pierna_right_mesh" file="pieza2_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 4g -->
     <mesh name="pieza3_pierna_right_mesh" file="pieza3_pierna_right_correct.stl" scale="0.001 0.001 0.001"/> <!-- masa: 13g -->
@@ -49,7 +49,7 @@
   <worldbody>
     <body name="trunk" pos="0 0 0.1" euler=" 0 0 0">
       <freejoint name="root"/>
-      <geom class="visual" type="mesh" name="trunk_collision" size="0.15 0.075 0.025" mass="0.072" rgba="0.18 0.18 0.2 1" mesh="base_box_mesh"/>
+      <geom class="visual" type="mesh" name="trunk_collision" size="0.15 0.075 0.025" mass="0.108" rgba="0.18 0.18 0.2 1" mesh="base_box_mesh"/>
       <geom class="collision" name="trunk_collision1" type="box" size="0.15 0.075 0.005" pos="0 0 0.001" euler="0 0 0"/>
       
       <site name="imu_site" pos="0 0 0" size="0.01" type="sphere" rgba="1 1 1 1"/>
@@ -66,7 +66,7 @@
             <joint name="fl_shoulder_joint" pos="0 0 0" axis="0 0 1" range="0 1.57" armature="0.004" damping="0.12" frictionloss="0.003"/>
             <geom class="visual" type="mesh" rgba="0.94 0.55 0.2 1" mesh="union_servo_correct_mesh" mass="0.001"/>
             <body name="fl_hombro_pierna" pos="0 0 0.002">
-              <geom class="visual" type="mesh" rgba="0.15 0.55 0.78 1" mesh="hombro_pierna_correct_mesh" mass="0.00948"/>
+              <geom class="visual" type="mesh" rgba="0.15 0.55 0.78 1" mesh="hombro_pierna_correct_mesh" mass="0.056"/>
               <body name="fl_knee_servo" pos="-0.02 0.023 0.02" quat="0.707388 -0.706825 0 0">
                 <geom class="visual" type="mesh" rgba="0.3 0.33 0.38 1" mesh="servo_sin_cabezal_mesh" mass="0.060"/>
                 <body name="fl_servo_u_2" pos="0 0 0.005" euler="0 0 -4.610055">
@@ -115,7 +115,7 @@
             <joint name="fr_shoulder_joint" pos="0 0 0" axis="0 0 1" range="0 1.57" armature="0.004" damping="0.12" frictionloss="0.003"/>
             <geom class="visual" type="mesh" rgba="0.94 0.55 0.2 1" mesh="union_servo_correct_mesh" mass="0.001"/>
             <body name="fr_hombro_pierna" pos="0 0 0.002" euler="0 3.14159 3.14159">
-              <geom class="visual" type="mesh" rgba="0.15 0.55 0.78 1" mesh="hombro_pierna_right_mesh" mass="0.00948"/>
+              <geom class="visual" type="mesh" rgba="0.15 0.55 0.78 1" mesh="hombro_pierna_right_mesh" mass="0.056"/>
               <body name="fr_knee_servo" pos="-0.0200215 0.0230215 -0.0200215" euler="-1.571 0 3.14159">
                 <geom class="visual" type="mesh" rgba="0.3 0.33 0.38 1" mesh="servo_sin_cabezal_mesh" mass="0.060"/>
                 <body name="fr_servo_u_2" pos="0 0 0.005" euler="0 0 3.13">
@@ -164,7 +164,7 @@
             <joint name="rl_shoulder_joint" pos="0 0 0" axis="0 0 1" range="0 1.57" armature="0.004" damping="0.12" frictionloss="0.003"/>
             <geom class="visual" type="mesh" rgba="0.94 0.55 0.2 1" mesh="union_servo_correct_mesh" mass="0.001"/>
             <body name="rl_hombro_pierna" pos="0 0 0.002">
-              <geom class="visual" type="mesh" rgba="0.15 0.55 0.78 1" mesh="hombro_pierna_correct_mesh" mass="0.00948"/>
+              <geom class="visual" type="mesh" rgba="0.15 0.55 0.78 1" mesh="hombro_pierna_correct_mesh" mass="0.056"/>
               <body name="rl_knee_servo" pos="-0.02 0.023 0.02" quat="0.707388 -0.706825 0 0">
                 <geom class="visual" type="mesh" rgba="0.3 0.33 0.38 1" mesh="servo_sin_cabezal_mesh" mass="0.060"/>
                 <body name="rl_servo_u_2" pos="0 0 0.005" euler="0 0 -4.610055">
@@ -213,7 +213,7 @@
             <joint name="rr_shoulder_joint" pos="0 0 0" axis="0 0 1" range="0 1.57" armature="0.004" damping="0.12" frictionloss="0.003"/>
             <geom class="visual" type="mesh" rgba="0.94 0.55 0.2 1" mesh="union_servo_correct_mesh" mass="0.001"/>
             <body name="rr_hombro_pierna" pos="0 0 0.002" euler="0 3.14159 3.14159">
-              <geom class="visual" type="mesh" rgba="0.15 0.55 0.78 1" mesh="hombro_pierna_right_mesh" mass="0.00948"/>
+              <geom class="visual" type="mesh" rgba="0.15 0.55 0.78 1" mesh="hombro_pierna_right_mesh" mass="0.056"/>
               <body name="rr_knee_servo" pos="-0.0200215 0.0230215 -0.0200215" euler="-1.571 0 3.14159">
                 <geom class="visual" type="mesh" rgba="0.3 0.33 0.38 1" mesh="servo_sin_cabezal_mesh" mass="0.060"/>
                 <body name="rr_servo_u_2" pos="0 0 0.005" euler="0 0 3.13">
