@@ -7,9 +7,64 @@ from mjlab.entity import EntityArticulationInfoCfg, EntityCfg
 
 QUAD_XML: Path = Path(__file__).parent / "xmls" / "loquro.xml"
 
+# Training spawn pose for the floating base.  MuJoCo quaternions are (w, x, y, z).
+QUAD_BASE_POS = (0.0197255, 0.0146502, 0.145657)
+QUAD_BASE_ROT = (0.996556, 0.049355, 0.00854287, 0.0660914)
+
+# Stable qpos copied from MuJoCo GUI at ctrl=(0.7854, ..., 0.7854).  This must
+# include passive joints because the closed-chain legs are not defined only by
+# the 12 actuated encoder joints.
+QUAD_JOINT_POS = {
+    "fl_shoulder_joint": 0.78061,
+    "fl_knee_joint": 0.77631,
+    "fl_pieza1_pierna_joint": -0.780866,
+    "fl_shoulder_passive_joint": 0.783369,
+    "fl_tensor_aluminio_passive_joint": 0.014233,
+    "fl_femur_joint": 0.79746,
+    "fl_tibia_passive_joint": 0.0197625,
+    "fr_shoulder_joint": 0.789562,
+    "fr_knee_joint": 0.794936,
+    "fr_pieza1_pierna_joint": -0.826888,
+    "fr_shoulder_passive_joint": -0.827335,
+    "fr_tensor_aluminio_passive_joint": 0.0561641,
+    "fr_femur_joint": 0.772312,
+    "fr_tibia_passive_joint": 0.0600942,
+    "rl_shoulder_joint": 0.784472,
+    "rl_knee_joint": 0.782318,
+    "rl_pieza1_pierna_joint": -0.787276,
+    "rl_shoulder_passive_joint": 0.792927,
+    "rl_tensor_aluminio_passive_joint": -0.00358814,
+    "rl_femur_joint": 0.7894,
+    "rl_tibia_passive_joint": -0.00155224,
+    "rr_shoulder_joint": 0.786294,
+    "rr_knee_joint": 0.788958,
+    "rr_pieza1_pierna_joint": -0.82063,
+    "rr_shoulder_passive_joint": -0.81786,
+    "rr_tensor_aluminio_passive_joint": 0.0381243,
+    "rr_femur_joint": 0.780609,
+    "rr_tibia_passive_joint": 0.0388843,
+}
+
+QUAD_INIT_QPOS = QUAD_BASE_POS + QUAD_BASE_ROT + tuple(QUAD_JOINT_POS.values())
+QUAD_INIT_CTRL = (0.7854,) * 12
+
+# Reset perturbation applied on top of the stable keyframe during training. Keep
+# z nonnegative so the feet never spawn below the ground-contact stance.
+QUAD_RESET_POSE_RANGE = {
+    "x": (-0.03, 0.03),
+    "y": (-0.03, 0.03),
+    "z": (0.0, 0.02),
+    "roll": (-0.03, 0.03),
+    "pitch": (-0.03, 0.03),
+    "yaw": (-0.10, 0.10),
+}
+
 
 def get_spec() -> mujoco.MjSpec:
-    return mujoco.MjSpec.from_file(str(QUAD_XML))
+    spec = mujoco.MjSpec.from_file(str(QUAD_XML))
+    key = spec.add_key(name="stable_stance", qpos=list(QUAD_INIT_QPOS))
+    key.ctrl = list(QUAD_INIT_CTRL)
+    return spec
 
 
 # Feetech SCS20 (20 kg.cm = 1.96 Nm stall torque).
@@ -33,12 +88,9 @@ def get_quad_bot_cfg() -> EntityCfg:
         spec_fn=get_spec,
         articulation=QUAD_ARTICULATION,
         init_state=EntityCfg.InitialStateCfg(
-            pos=(0.0, 0.0, 0.30),
-            joint_pos={
-                ".*_shoulder_joint": 0.7854,
-                ".*_knee_joint": 0.7854,
-                ".*_femur_joint": 0.7854,
-            },
+            pos=QUAD_BASE_POS,
+            rot=QUAD_BASE_ROT,
+            joint_pos=None,
             joint_vel={".*": 0.0},
         ),
     )
@@ -117,6 +169,7 @@ if __name__ == "__main__":
     print()
     print(f"  Initial ctrl (rad): {np.round(data.ctrl, 3)}")
     print(f"  Initial trunk z   : {data.qpos[2]:.3f} m")
+    print(f"  Initial trunk quat: {np.round(data.qpos[3:7], 3)}")
     print("=" * 60)
     print()
 
