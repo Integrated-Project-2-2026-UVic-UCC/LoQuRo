@@ -39,7 +39,7 @@ void beginNetwork()
 
     Serial.println("WIFI MANAGER: Searching for saved SSIDs");
 
-    if (!wm.autoConnect("Quad-bot"))
+    if (!wm.autoConnect("LoQuRo"))
     {
         Serial.println("WIFI MANAGER: Timeout, resetting device");
         delay(3000);
@@ -76,7 +76,7 @@ void beginNetwork()
         Serial.println("ZENOH: Zenoh initialization failed! Opening web portal");
         digitalWrite(LED_PIN, LOW);
 
-        if (wm.startConfigPortal("Quad-bot"))
+        if (wm.startConfigPortal("LoQuRo"))
         {
             if (shouldSaveConfig)
             {
@@ -103,17 +103,18 @@ void beginNetwork()
             ESP.restart();
         }
     }
-    configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+    // Sincronization time with NTP servers, necessary for correct timestamping of messages (If we dont have WiFi it is not possible)
+    // configTime(0, 0, "pool.ntp.org", "time.nist.gov");
 
-    // Esperar sincronización
-    Serial.print("Syncing NTP");
-    struct tm timeinfo;
-    while (!getLocalTime(&timeinfo))
-    {
-        Serial.print(".");
-        delay(500);
-    }
-    Serial.println(" OK");
+    // // Esperar sincronización
+    // Serial.print("Syncing NTP");
+    // struct tm timeinfo;
+    // while (!getLocalTime(&timeinfo))
+    // {
+    //     Serial.print(".");
+    //     delay(500);
+    // }
+    // Serial.println(" OK");
 
     Serial.println("SYSTEM: Zenoh connected succesfully!");
 }
@@ -130,7 +131,7 @@ bool deserializeJointStates(ucdrBuffer *ub, float target_joints[4][3], double *t
         (double)sec +
         (double)nanosec / 1e9; // seconds + nanoseconds in seconds, epoch time
 
-    { // Frame id, by the moment we do not need it will be destroyed
+    { // frame id, by the moment we do not need it will be destroyed
         char frame_id[32];
         ucdr_deserialize_string(ub, frame_id, sizeof(frame_id));
     }
@@ -176,27 +177,26 @@ uint32_t serializeJointStates(uint8_t *buffer, uint32_t size, const float target
     ucdrBuffer ub;
     ucdr_init_buffer(&ub, buffer + 4, size - 4);
 
-    // Header stamp
+    // header stamp
     uint32_t sec = (uint32_t)timestamp;
     uint32_t nanosec = (uint32_t)((timestamp - sec) * 1e9);
     ucdr_serialize_uint32_t(&ub, sec);
     ucdr_serialize_uint32_t(&ub, nanosec);
 
-    // Frame id (empty string as it's not used)
+    // frame id not necessary
     ucdr_serialize_string(&ub, "");
 
-    // Names count (0 as names are not serialized)
     uint32_t names_count = 0;
     ucdr_serialize_uint32_t(&ub, names_count);
 
-    // Positions count (always 12 for 4 legs with 3 joints each)
+    // positions count (always 12 for 4 legs with 3 joints each)
     uint32_t pos_count = 12;
     ucdr_serialize_uint32_t(&ub, pos_count);
 
-    // Align buffer to 8 bytes para el array de doubles
+    // align buffer to 8 bytes for doubles
     ucdr_align_to(&ub, 8);
 
-    // Serialize joint positions
+    // serialize joint positions
     double positions[12];
     for (int leg = 0; leg < 4; leg++)
     {

@@ -1,3 +1,4 @@
+// Servos wrap library for PCA9685, adapted from Adafruit_PWMServoDriver
 #ifndef PCA9685_H
 #define PCA9685_H
 

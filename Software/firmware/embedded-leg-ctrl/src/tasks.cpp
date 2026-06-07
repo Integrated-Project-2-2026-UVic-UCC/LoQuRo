@@ -48,23 +48,23 @@ void data_handler(z_loaned_sample_t *sample, void *arg)
     // Serial.println();
 }
 
-void watchdogTask(void *pvParameters)
+void watchdogTask(void *pvParameters) // controles the wifi conection, 5 seconds check
 {
     for (;;)
     {
         if (WiFi.status() != WL_CONNECTED)
         {
             digitalWrite(LED_PIN, LOW);
-            WiFi.reconnect();                // DONE: It do not reconnects, maybe we need to do WiFi.begin() again?
-            vTaskDelay(pdMS_TO_TICKS(3000)); // greater delay to give time to reconnect
+            WiFi.disconnect();
+            WiFi.begin(); // reconnect was not working
+            vTaskDelay(pdMS_TO_TICKS(3000));
         }
         else
         {
-            if (digitalRead(LED_PIN) == LOW) // if wifi was disconnected, turn on LED when reconnected
-            {
+            if (digitalRead(LED_PIN) == LOW)
                 digitalWrite(LED_PIN, HIGH);
-            }
-            vTaskDelay(whatchdog_delay); // delay to not overload CPU
+
+            vTaskDelay(whatchdog_delay);
         }
     }
 }
@@ -72,10 +72,11 @@ void watchdogTask(void *pvParameters)
 void writeServosTask(void *pvParameters)
 {
     float new_joints[4][3];
-    leg_lf.write(0.0, 0.0, 0.0); // for debug, to not move the robot
-    leg_rf.write(0.0, 0.0, 0.0);
-    leg_lh.write(0.0, 0.0, 0.0);
-    leg_rh.write(0.0, 0.0, 0.0);
+    // //---DEBUGGING---
+    // leg_lf.write(0.0, 0.0, 0.0);
+    // leg_rf.write(0.0, 0.0, 0.0);
+    // leg_lh.write(0.0, 0.0, 0.0);
+    // leg_rh.write(0.0, 0.0, 0.0);
     for (;;)
     {
         if (xQueueReceive(Queues::joint_states_queue, &new_joints, portMAX_DELAY) == pdTRUE)
@@ -86,50 +87,93 @@ void writeServosTask(void *pvParameters)
             leg_lh.write(new_joints[2][0], new_joints[2][1], new_joints[2][2]);
             leg_rh.write(new_joints[3][0], new_joints[3][1], new_joints[3][2]);
         }
-        // frecuencia de recepcion hasta el maxportdelay
+        // when arribes it write the position, with max port delay timeout
     }
 }
 
 void readEncodersTask(void *pvParameters)
 {
-    float angles[12] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    float angles[12] = {0};
+    float offsets[12] = {0};
+    bool offsetsCaptured = false; // flag to know if offsets were captured
+
     for (;;)
     {
         for (uint8_t port = 0; port < 8; port++)
         {
-            // Select mux port
+            // open mux 1, encoders 0-7
             Wire.beginTransmission(0x70);
             Wire.write(1 << port);
             Wire.endTransmission();
 
-            // Check if encoder (0x36) is present on this port
+            // read encoder
             Wire.beginTransmission(0x36);
             if (Wire.endTransmission() == 0)
             {
-                // Encoder found, read angle
                 Wire.beginTransmission(0x36);
-                Wire.write(0x0E); // angle register
+                Wire.write(0x0E);
                 Wire.endTransmission(false);
-
                 Wire.requestFrom((uint8_t)0x36, (uint8_t)2);
-
                 if (Wire.available() >= 2)
                 {
-                    uint8_t hi = Wire.read();
-                    uint8_t lo = Wire.read();
-
-                    uint16_t raw_angle = ((uint16_t)(hi & 0x0F) << 8) | lo;
-                    angles[port] = static_cast<float>(raw_angle) * 360.0f / 4096.0f;
+                    uint16_t raw = ((uint16_t)(Wire.read() & 0x0F) << 8) | Wire.read(); // decodification
+                    float angle = raw * 360.0f / 4096.0f;
+                    if (!offsetsCaptured)
+                        offsets[port] = angle; // if offsetes werent captured at first, we capture them
+                    angles[port] = angle - offsets[port];
                 }
             }
             else
             {
-                angles[port] = NAN;
+                angles[port] = NAN; // if cannot decodify, set to Not a Number
             }
+
+            // Close mux 1
+            Wire.beginTransmission(0x70);
+            Wire.write(0x00);
+            Wire.endTransmission();
         }
 
+        for (uint8_t port = 0; port < 4; port++)
+        {
+            // open mux2, encoders 8-11
+            Wire.beginTransmission(0x71);
+            Wire.write(1 << port);
+            Wire.endTransmission();
+
+            Wire.beginTransmission(0x36);
+            if (Wire.endTransmission() == 0)
+            {
+                Wire.beginTransmission(0x36);
+                Wire.write(0x0E);
+                Wire.endTransmission(false);
+                Wire.requestFrom((uint8_t)0x36, (uint8_t)2);
+                if (Wire.available() >= 2)
+                {
+                    uint16_t raw = ((uint16_t)(Wire.read() & 0x0F) << 8) | Wire.read();
+                    float angle = raw * 360.0f / 4096.0f;
+                    if (!offsetsCaptured)
+                        offsets[8 + port] = angle;
+                    angles[8 + port] = angle - offsets[8 + port];
+                }
+            }
+            else
+            {
+                angles[8 + port] = NAN;
+            }
+
+            // close mux
+            Wire.beginTransmission(0x71);
+            Wire.write(0x00);
+            Wire.endTransmission();
+        }
+
+        if (offsets[0] != 0.0f) // if there is values, the offsets were captured
+        {
+            offsetsCaptured = true;
+        }
         xQueueOverwrite(Queues::encoder_data_queue, &angles);
-        vTaskDelay(pdMS_TO_TICKS(100)); // 10hz
+        vTaskDelay(pdMS_TO_TICKS(100)); // 10 Hz
     }
 }
 
@@ -149,7 +193,6 @@ void readIMUTask(void *pvParameters)
 
 void sendStatusTask(void *pvParameters)
 {
-    // TODO: Add encoders
     IMUdata received_imu;
     uint8_t imu_cdr_buffer[512];
     uint8_t mag_cdr_buffer[256];
@@ -158,7 +201,6 @@ void sendStatusTask(void *pvParameters)
     float encoder_joints[4][3]; // reshape flat encoder angles to [leg][joint]
     for (;;)
     {
-        // TODO: Send encoder data to ROS2 through zenoh-pico and pin to core
         if (xQueueReceive(Queues::imu_data_queue, &received_imu, portMAX_DELAY) == pdTRUE) // if there is data in the buffer
         {
             // get current time

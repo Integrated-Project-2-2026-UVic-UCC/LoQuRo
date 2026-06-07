@@ -1,37 +1,79 @@
+# Include Directory
 
-This directory is intended for project header files.
+This directory contains the project header files for the ESP32 quadruped robot firmware.
 
-A header file is a file containing C declarations and macro definitions
-to be shared between several project source files. You request the use of a
-header file in your project source file (C, C++, etc) located in `src` folder
-by including it, with the C preprocessing directive `#include'.
+A header file contains C/C++ declarations and macro definitions shared between several source files. You request the use of a header file in your source file by including it with the C preprocessing directive `#include`.
 
-```src/main.c
+```cpp
+// src/main.cpp
 
-#include "header.h"
+#include "config.h"
+#include "hardware.h"
 
-int main (void)
-{
- ...
-}
+void setup() { ... }
+void loop() { ... }
 ```
 
-Including a header file produces the same results as copying the header file
-into each source file that needs it. Such copying would be time-consuming
-and error-prone. With a header file, the related declarations appear
-in only one place. If they need to be changed, they can be changed in one
-place, and programs that include the header file will automatically use the
-new version when next recompiled. The header file eliminates the labor of
-finding and changing all the copies as well as the risk that a failure to
-find one copy will result in inconsistencies within a program.
+Including a header file produces the same results as copying its contents into each source file that needs it. With header files, related declarations appear in only one place — if they need to be changed, they can be changed once, and every file that includes them will use the new version on the next recompile.
 
-In C, the convention is to give header files names that end with `.h'.
+---
 
-Read more about using header files in official GCC documentation:
+## Header Files
 
-* Include Syntax
-* Include Operation
-* Once-Only Headers
-* Computed Includes
+### `config.h`
+Global project configuration. Defines WiFi, Zenoh session mode, and all ROS topic key expressions (`joint_commands`, `joint_states`, `imu/data_raw`, `imu/mag`). Also includes the core Arduino and networking libraries (`WiFi.h`, `WiFiManager.h`, `Preferences.h`, `Wire.h`).
 
+### `hardware.h`
+Hardware abstraction layer. Defines the `Leg` struct, which groups three `PCA9685Servo` joints (HAA, HFE, KFE) per leg, and the `ServoParams` namespace with the PCA9685 channel assignments for all twelve joints across the four legs. Declares the global `pwm` driver, the four `Leg` instances, the `joint_states` matrix, and the `IMUMPU9250` IMU object.
+
+### `PCA9685.h`
+Servo driver wrapper around `Adafruit_PWMServoDriver`. The `PCA9685Servo` class handles conversion from radians (or degrees) to PWM ticks at 100 Hz, with configurable per-joint travel limits. The `PCA9685Cfg` namespace holds the timing constants (`min_us`, `max_us`, `period_us`, `ticks_per_us`).
+
+### `IMUMPU9250.h`
+IMU driver for the MPU-9250. Exposes `measure` (x/y/z float triplet) and `IMUdata` (accel, gyro, mag) structs. The `IMUMPU9250` class provides `begin()`, `calibrate()`, `calibrateMag()`, and individual `getAccel()` / `getGyro()` / `getMag()` methods. Calibration constants are in the `IMUCfg` namespace.
+
+### `mailbox.h`
+FreeRTOS inter-task communication interface. Declares the `Queues` namespace with the four `QueueHandle_t` objects used to pass data between tasks: `joint_states_queue`, `time_stamp_queue`, `encoder_data_queue`, and `imu_data_queue`.
+
+### `tasks.h`
+Declarations for all FreeRTOS tasks and the Zenoh data handler callback: `readEncodersTask`, `readIMUTask`, `writeServosTask`, `sendStatusTask`, `watchdogTask`, and `data_handler`.
+
+### `utilities.h`
+Helper functions for serialization, deserialization, and networking. Includes `deserializeJointStates()`, `serializeImu()`, `serializeMag()`, `serializeJointStates()`, `getPreciseTime()`, and `beginNetwork()`. Uses `ucdr/microcdr.h` for CDR-based ROS 2 message encoding.
+
+### `zenoh.h`
+Zenoh-pico session interface. Declares the global session object (`z_owned_session_t`), the joint-states subscriber (`z_owned_subscriber_t`), and the three publishers for IMU, magnetometer, and encoder data.
+
+### `ServoCtrl.h`
+Legacy servo driver using the ESP32 LEDC peripheral directly via GPIO pins. Superseded by `PCA9685.h` but kept for reference. The `ServoCtrl` class and `ServoCfg` namespace mirror the PCA9685 interface at 50 Hz.
+
+---
+
+## Dependency Graph
+
+```
+config.h
+└── (WiFi, WiFiManager, Preferences, Wire, Arduino)
+
+hardware.h
+├── PCA9685.h
+│   └── Adafruit_PWMServoDriver
+└── IMUMPU9250.h
+    └── config.h
+
+mailbox.h
+└── FreeRTOS (queue.h)
+
+tasks.h
+└── zenoh.h
+    └── zenoh-pico
+
+utilities.h
+├── ucdr/microcdr.h
+└── IMUMPU9250.h
+```
+
+---
+
+For more on header files see the official GCC documentation:
 https://gcc.gnu.org/onlinedocs/cpp/Header-Files.html

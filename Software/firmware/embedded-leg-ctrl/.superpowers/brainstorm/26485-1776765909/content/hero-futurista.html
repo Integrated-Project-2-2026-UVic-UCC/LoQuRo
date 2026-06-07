@@ -1,0 +1,291 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background: #000;
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    overflow-x: hidden;
+  }
+
+  .hero {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    overflow: hidden;
+  }
+
+  /* Animated background grid */
+  .grid-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      linear-gradient(0deg, rgba(255, 45, 45, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 45, 45, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
+  }
+
+  @keyframes gridMove {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(50px); }
+  }
+
+  /* Particles */
+  .particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+  }
+
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #ff2d2d;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: float 20s infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+  }
+
+  /* Glowing orbs */
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+  }
+
+  .orb-1 {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255, 45, 45, 0.3), transparent);
+    top: -100px;
+    right: -100px;
+    animation: orbFloat 15s ease-in-out infinite;
+  }
+
+  .orb-2 {
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255, 45, 45, 0.2), transparent);
+    bottom: -50px;
+    left: 5%;
+    animation: orbFloat 18s ease-in-out infinite reverse;
+  }
+
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(30px, -30px); }
+  }
+
+  /* Content */
+  .content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    max-width: 1000px;
+    padding: 40px;
+  }
+
+  .title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(3rem, 10vw, 6rem);
+    font-weight: 900;
+    margin-bottom: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    animation: titleFade 1.5s ease-out;
+  }
+
+  .title-accent {
+    color: #ff2d2d;
+    text-shadow: 0 0 20px #ff2d2d, 0 0 40px #ff2d2d;
+  }
+
+  @keyframes titleFade {
+    0% { opacity: 0; transform: translateY(30px); filter: blur(10px); }
+    100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+
+  .subtitle {
+    font-size: clamp(0.9rem, 3vw, 1.3rem);
+    color: #aaa;
+    margin-bottom: 50px;
+    line-height: 1.6;
+    animation: subtitleFade 1.5s ease-out 0.3s both;
+    letter-spacing: 1px;
+  }
+
+  @keyframes subtitleFade {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Buttons */
+  .button-group {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: buttonsFade 1.5s ease-out 0.6s both;
+  }
+
+  @keyframes buttonsFade {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  .btn {
+    padding: 16px 40px;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'Orbitron', sans-serif;
+    border: none;
+    cursor: pointer;
+    border-radius: 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .btn-primary {
+    background: #ff2d2d;
+    color: #000;
+    box-shadow: 0 0 20px rgba(255, 45, 45, 0.5);
+  }
+
+  .btn-primary:hover {
+    background: #ff5555;
+    box-shadow: 0 0 40px rgba(255, 45, 45, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.95);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: #fff;
+    border: 2px solid #ff2d2d;
+    box-shadow: inset 0 0 10px rgba(255, 45, 45, 0.1);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 45, 45, 0.1);
+    box-shadow: inset 0 0 20px rgba(255, 45, 45, 0.3), 0 0 20px rgba(255, 45, 45, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary:active {
+    transform: translateY(0);
+  }
+
+  /* Scroll indicator */
+  .scroll-indicator {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: bounce 2s infinite;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    color: #ff2d2d;
+    text-transform: uppercase;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-10px); }
+  }
+
+  /* Scanlines effect overlay */
+  .scanlines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(255, 45, 45, 0.02) 0px,
+      rgba(255, 45, 45, 0.02) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+    pointer-events: none;
+    z-index: 5;
+    animation: scanMove 8s linear infinite;
+  }
+
+  @keyframes scanMove {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(10px); }
+  }
+</style>
+
+<div class="hero">
+  <!-- Background elements -->
+  <div class="grid-bg"></div>
+  <div class="particles" id="particlesContainer"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="scanlines"></div>
+
+  <!-- Main content -->
+  <div class="content">
+    <h1 class="title">
+      <span>LOQURO</span><span class="title-accent">.</span>
+    </h1>
+    
+    <p class="subtitle">
+      Quadruped Intelligence · Hardware-to-ROS2 Integration · Advanced Robotics
+    </p>
+
+    <div class="button-group">
+      <button class="btn btn-primary">→ Explore Project</button>
+      <button class="btn btn-secondary">⬥ View Architecture</button>
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="scroll-indicator">↓ SCROLL ↓</div>
+</div>
+
+<script>
+  // Generate particles
+  const container = document.getElementById('particlesContainer');
+  for (let i = 0; i < 50; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.top = Math.random() * 100 + '%';
+    particle.style.animationDelay = Math.random() * 20 + 's';
+    particle.style.animationDuration = (15 + Math.random() * 15) + 's';
+    container.appendChild(particle);
+  }
+</script>

@@ -1,4 +1,4 @@
-// IMPLEMENTATION OF ZENOH INTERFACE
+// IMPLEMENTATION OF ZENOH INTERFACE (Inspired in oficial example codes of zenoh-pico)
 #include "zenoh.h"
 #include "config.h"
 #include "tasks.h"

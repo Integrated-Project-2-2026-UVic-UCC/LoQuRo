@@ -4,7 +4,6 @@
 
 #include "PCA9685.h"
 #include "IMUMPU9250.h"
-#include "multiAS5600.h"
 
 struct Leg
 {
@@ -45,8 +44,8 @@ namespace ServoParams
 
   static constexpr uint8_t lf_haa_channel = 0;
   static constexpr uint8_t lf_hfe_channel = 1;
-  static constexpr uint8_t lf_kfe_channel = 2;
-  static constexpr uint8_t rf_haa_channel = 3;
+  static constexpr uint8_t lf_kfe_channel = 13;
+  static constexpr uint8_t rf_haa_channel = 12;
   static constexpr uint8_t rf_hfe_channel = 4;
   static constexpr uint8_t rf_kfe_channel = 5;
   static constexpr uint8_t lh_haa_channel = 6;
@@ -68,7 +67,5 @@ extern float joint_states[4][3];
 
 // imu definition
 extern IMUMPU9250 imu;
-
-extern multiAS5600 joints;
 
 #endif
