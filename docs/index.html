@@ -1,48 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quad-Bot — Reinforcement Learning</title>
+  <title>LoQuRo — Lowcost Quadruped Robot</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Space+Grotesk:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow:wght@700;800&family=Outfit:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     :root {
-      --bg: #050505;
-      --surface: #0e0e0e;
-      --surface-2: #161616;
-      --border: rgba(255,255,255,0.08);
-      --border-hover: rgba(255,255,255,0.15);
+      --bg: #080808;
+      --surface: #111111;
+      --surface-2: #1a1a1a;
+      --border: rgba(255, 255, 255, 0.07);
+      --border-hover: rgba(255, 255, 255, 0.14);
       --accent: #e63946;
-      --accent-dim: rgba(230,57,70,0.12);
+      --accent-dim: rgba(230, 57, 70, 0.10);
+      --accent-glow: rgba(230, 57, 70, 0.25);
+      --gold: #c9a84c;
+      --gold-dim: rgba(201, 168, 76, 0.10);
       --text: #f0f0f0;
-      --text-muted: #888;
-      --text-subtle: #555;
-      --font-display: 'Space Grotesk', sans-serif;
-      --font-body: 'DM Sans', sans-serif;
-      --font-mono: 'Fira Code', monospace;
-      --radius: 12px;
-      --nav-h: 60px;
-      --sidebar-w: 260px;
+      --text-muted: #7a7a7a;
+      --text-subtle: #3a3a3a;
+      --font-display: 'Barlow', sans-serif;
+      --font-body: 'Outfit', sans-serif;
+      --font-mono: 'Geist Mono', monospace;
+      --radius: 10px;
+      --nav-h: 58px;
+      --sidebar-w: 270px;
     }
 
     body.light {
-      --bg: #f5f5f5;
+      --bg: #f2f2f0;
       --surface: #ffffff;
-      --surface-2: #ececec;
-      --border: rgba(0,0,0,0.1);
-      --border-hover: rgba(0,0,0,0.2);
-      --text: #e63946;
-      --text-muted: #c0392b;
-      --text-subtle: #aaa;
+      --surface-2: #e8e8e5;
+      --border: rgba(0, 0, 0, 0.09);
+      --border-hover: rgba(0, 0, 0, 0.18);
+      --text: #111111;
+      --text-muted: #555555;
+      --text-subtle: #aaaaaa;
     }
 
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       background: var(--bg);
@@ -58,8 +72,8 @@
       content: '';
       position: fixed;
       inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-      opacity: 0.028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.022;
       pointer-events: none;
       z-index: 9999;
     }
@@ -67,193 +81,380 @@
     /* ── NAVBAR ── */
     .navbar {
       position: fixed;
-      top: 20px;
+      top: 18px;
       left: 50%;
       transform: translateX(-50%);
-      width: calc(100% - 48px);
-      max-width: 960px;
+      width: calc(100% - 40px);
+      max-width: 980px;
       height: var(--nav-h);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 20px;
-      background: rgba(15,15,15,0.45);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      padding: 0 18px;
+      background: rgba(10, 10, 10, 0.5);
+      backdrop-filter: blur(28px) saturate(160%);
+      -webkit-backdrop-filter: blur(28px) saturate(160%);
       border: 1px solid var(--border);
-      border-radius: 30px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      border-radius: 32px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
       z-index: 1000;
-      transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
     }
-    body.light .navbar { background: rgba(245,245,245,0.75); }
-    .navbar.hidden { transform: translate(-50%, -150%); opacity: 0; pointer-events: none; }
 
-    .nav-left { display: flex; align-items: center; gap: 10px; }
-
-    .hamburger {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(255,255,255,0.06);
-      color: var(--text);
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.2s, transform 0.2s;
-      flex-shrink: 0;
+    body.light .navbar {
+      background: rgba(242, 242, 240, 0.75);
     }
-    body.light .hamburger { background: rgba(0,0,0,0.07); }
-    .hamburger:hover { background: var(--accent); color: #fff; transform: scale(1.08); }
-    .hamburger svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 
-    .nav-logo {
-      font-family: var(--font-display);
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-      cursor: pointer;
+    .navbar.hidden {
+      transform: translate(-50%, -150%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .nav-left {
       display: flex;
       align-items: center;
       gap: 10px;
-      color: var(--text);
     }
-    body.light .nav-logo { color: #111; }
-    .nav-logo-dot {
-      width: 8px; height: 8px;
+
+    .hamburger {
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    body.light .hamburger {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .hamburger:hover {
       background: var(--accent);
-      box-shadow: 0 0 12px var(--accent);
+      color: #fff;
+      transform: scale(1.08);
+    }
+
+    .hamburger svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    /* ── LOGO ── */
+    .nav-logo {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    body.light .nav-logo {
+      color: #111;
+    }
+
+    .nav-logo-mark {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      background: transparent;
+      border: 1.5px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-logo-mark::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .nav-logo:hover .nav-logo-mark::before {
+      opacity: 0.15;
+    }
+
+    .nav-logo-mark::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 6px;
+      height: 6px;
+      border-top: 1.5px solid var(--accent);
+      border-left: 1.5px solid var(--accent);
+      border-radius: 1px 0 0 0;
+    }
+
+    .nav-logo-bracket-br {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 6px;
+      height: 6px;
+      border-bottom: 1.5px solid var(--accent);
+      border-right: 1.5px solid var(--accent);
+      border-radius: 0 0 1px 0;
+    }
+
+    .nav-logo-text {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 1px;
+    }
+
+    .nav-logo-text .accent {
+      color: var(--accent);
     }
 
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 2px;
     }
+
     .nav-link {
-      background: none; border: none;
+      background: none;
+      border: none;
       color: var(--text-muted);
       font-family: var(--font-body);
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
-      padding: 6px 12px;
+      padding: 6px 13px;
       border-radius: 20px;
       transition: color 0.2s, background 0.2s;
-      letter-spacing: 0.2px;
+      letter-spacing: 0.1px;
     }
-    .nav-link:hover { color: var(--accent); background: var(--accent-dim); }
-    .nav-link.active { color: var(--accent); }
 
-    .nav-right { display: flex; align-items: center; gap: 8px; }
+    .nav-link:hover {
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .nav-link.active {
+      color: var(--accent);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
     .repo-link {
-      display: flex; align-items: center; justify-content: center;
-      width: 36px; height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.06);
+      background: rgba(255, 255, 255, 0.05);
       color: var(--text);
       transition: background 0.2s, color 0.2s, transform 0.2s;
       text-decoration: none;
     }
-    body.light .repo-link { background: rgba(0,0,0,0.07); color: #111; }
-    .repo-link:hover { background: var(--accent); color: #fff; transform: scale(1.08); }
-    .repo-link svg { width: 18px; height: 18px; fill: currentColor; }
+
+    body.light .repo-link {
+      background: rgba(0, 0, 0, 0.06);
+      color: #111;
+    }
+
+    .repo-link:hover {
+      background: var(--accent);
+      color: #fff;
+      transform: scale(1.08);
+    }
+
+    .repo-link svg {
+      width: 17px;
+      height: 17px;
+      fill: currentColor;
+    }
 
     /* ── SIDEBAR ── */
     .sidebar-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.4);
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
       z-index: 1100;
-      opacity: 0; pointer-events: none;
+      opacity: 0;
+      pointer-events: none;
       transition: opacity 0.3s;
     }
-    .sidebar-overlay.open { opacity: 1; pointer-events: all; }
+
+    .sidebar-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
 
     .sidebar {
       position: fixed;
-      top: 0; left: 0; bottom: 0;
+      top: 0;
+      left: 0;
+      bottom: 0;
       width: var(--sidebar-w);
-      background: rgba(12,12,12,0.92);
-      backdrop-filter: blur(32px) saturate(180%);
-      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      background: rgba(10, 10, 10, 0.94);
+      backdrop-filter: blur(36px) saturate(160%);
+      -webkit-backdrop-filter: blur(36px) saturate(160%);
       border-right: 1px solid var(--border);
       z-index: 1200;
       display: flex;
       flex-direction: column;
-      padding: 28px 20px;
+      padding: 26px 18px;
       transform: translateX(-110%);
-      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    body.light .sidebar { background: rgba(248,248,248,0.97); }
-    .sidebar.open { transform: translateX(0); }
+
+    body.light .sidebar {
+      background: rgba(248, 248, 246, 0.97);
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
 
     .sidebar-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 36px;
+      margin-bottom: 32px;
     }
+
     .sidebar-logo {
-      font-family: var(--font-display);
-      font-size: 17px;
-      font-weight: 700;
-      display: flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       color: var(--text);
+      letter-spacing: 0.5px;
     }
-    body.light .sidebar-logo { color: #111; }
+
+    body.light .sidebar-logo {
+      color: #111;
+    }
 
     .sidebar-close {
-      width: 32px; height: 32px;
-      border-radius: 50%; border: none;
-      background: rgba(255,255,255,0.06);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.06);
       color: var(--text-muted);
       cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: background 0.2s;
-      font-size: 16px;
+      font-size: 14px;
     }
-    body.light .sidebar-close { background: rgba(0,0,0,0.07); color: #555; }
-    .sidebar-close:hover { background: var(--accent); color: #fff; }
+
+    body.light .sidebar-close {
+      background: rgba(0, 0, 0, 0.07);
+      color: #555;
+    }
+
+    .sidebar-close:hover {
+      background: var(--accent);
+      color: #fff;
+    }
 
     .sidebar-section-label {
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 9px;
       text-transform: uppercase;
-      letter-spacing: 2px;
+      letter-spacing: 2.5px;
       color: var(--text-subtle);
-      margin-bottom: 10px;
+      margin-bottom: 9px;
       padding-left: 4px;
     }
 
     .sidebar-nav {
       display: flex;
       flex-direction: column;
-      gap: 2px;
-      margin-bottom: 32px;
+      gap: 1px;
+      margin-bottom: 28px;
     }
+
     .sidebar-link {
-      background: none; border: none;
+      background: none;
+      border: none;
       text-align: left;
       color: var(--text-muted);
       font-family: var(--font-body);
-      font-size: 14px; font-weight: 400;
+      font-size: 14px;
+      font-weight: 400;
       cursor: pointer;
       padding: 9px 12px;
       border-radius: 8px;
       transition: color 0.2s, background 0.2s;
-      display: flex; align-items: center; gap: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .sidebar-link:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-    body.light .sidebar-link:hover { background: rgba(0,0,0,0.05); color: #111; }
-    .sidebar-link.active { color: var(--accent); background: var(--accent-dim); font-weight: 500; }
-    .sidebar-link-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 
-    .sidebar-divider { border: none; border-top: 1px solid var(--border); margin: 8px 0 20px; }
+    .sidebar-link:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
 
-    /* Theme toggle */
+    body.light .sidebar-link:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: #111;
+    }
+
+    .sidebar-link.active {
+      color: var(--accent);
+      background: var(--accent-dim);
+      font-weight: 500;
+    }
+
+    .sidebar-link-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    .sidebar-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 6px 0 18px;
+    }
+
     .theme-toggle {
-      display: flex; align-items: center; gap: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
       padding: 9px 12px;
       border-radius: 8px;
       cursor: pointer;
@@ -266,15 +467,419 @@
       width: 100%;
       text-align: left;
     }
-    .theme-toggle:hover { background: rgba(255,255,255,0.05); color: var(--text); }
-    body.light .theme-toggle:hover { background: rgba(0,0,0,0.05); color: #111; }
-    .theme-icon { font-size: 15px; }
 
-    .sidebar-bottom { margin-top: auto; }
+    .theme-toggle:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+    }
+
+    body.light .theme-toggle:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: #111;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 0 24px;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(to bottom, rgba(8, 8, 8, 0.3) 0%, rgba(8, 8, 8, 0.1) 40%, rgba(8, 8, 8, 0.75) 100%);
+    }
+
+    body.light .hero-overlay {
+      background: linear-gradient(to bottom, rgba(242, 242, 240, 0.65) 0%, rgba(242, 242, 240, 0.25) 40%, rgba(242, 242, 240, 0.85) 100%);
+    }
+
+    /* Subtle dark gradient mesh background */
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 50%, rgba(230, 57, 70, 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 30%, rgba(201, 168, 76, 0.04) 0%, transparent 60%),
+        #080808;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      max-width: 820px;
+      width: 100%;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(230, 57, 70, 0.2);
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+    }
+
+    .hero-eyebrow-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: blink 2s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.3;
+      }
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(72px, 13vw, 130px);
+      font-weight: 400;
+      line-height: 0.88;
+      letter-spacing: -2px;
+      color: var(--text);
+      margin-bottom: 12px;
+      font-style: italic;
+    }
+
+    body.light .hero-title {
+      color: #111;
+    }
+
+    .hero-title .accent {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .hero-subtitle {
+      font-family: var(--font-body);
+      font-size: clamp(11px, 1.6vw, 15px);
+      font-weight: 500;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 36px;
+    }
+
+    .hero-desc {
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 500px;
+      margin: 0 auto 40px;
+    }
+
+    /* ── VIDEO PLAYER ── */
+    .video-player-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 740px;
+      margin: 0 auto 44px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(230, 57, 70, 0.08);
+      aspect-ratio: 16 / 9;
+      cursor: pointer;
+      background: #000;
+    }
+
+    .video-player-wrap video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: opacity 0.3s;
+    }
+
+    /* Poster / thumbnail overlay when paused */
+    .video-poster-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.3) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.3s;
+      z-index: 3;
+    }
+
+    .video-poster-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Play button */
+    .play-btn {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: rgba(230, 57, 70, 0.15);
+      border: 1.5px solid rgba(230, 57, 70, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s, border-color 0.25s;
+      backdrop-filter: blur(8px);
+    }
+
+    .video-player-wrap:hover .play-btn {
+      transform: scale(1.12);
+      background: rgba(230, 57, 70, 0.28);
+      border-color: rgba(230, 57, 70, 0.9);
+    }
+
+    .play-btn-ring {
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 1px solid rgba(230, 57, 70, 0.2);
+      animation: ring-pulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes ring-pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.6;
+      }
+
+      50% {
+        transform: scale(1.12);
+        opacity: 0;
+      }
+    }
+
+    .play-icon {
+      width: 0;
+      height: 0;
+      border-top: 12px solid transparent;
+      border-bottom: 12px solid transparent;
+      border-left: 20px solid #fff;
+      margin-left: 4px;
+      filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.4));
+    }
+
+    /* Video label */
+    .video-label {
+      position: absolute;
+      bottom: 14px;
+      left: 18px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    /* Video scan-line overlay */
+    .video-player-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.015) 2px,
+          rgba(0, 0, 0, 0.015) 4px);
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* PRICE BADGE */
+    .price-callout {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(201, 168, 76, 0.08);
+      border: 1px solid rgba(201, 168, 76, 0.25);
+      padding: 14px 24px;
+      border-radius: 12px;
+      margin-bottom: 44px;
+    }
+
+    .price-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .price-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-subtle);
+      margin-bottom: 3px;
+    }
+
+    .price-value {
+      font-family: var(--font-body);
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .price-value.ours {
+      color: var(--gold);
+    }
+
+    .price-value.theirs {
+      color: var(--text-muted);
+      text-decoration: line-through;
+      font-size: 16px;
+    }
+
+    .price-vs {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-subtle);
+      padding: 0 4px;
+    }
+
+    .price-divider {
+      width: 1px;
+      height: 36px;
+      background: rgba(201, 168, 76, 0.2);
+    }
+
+    .price-note {
+      font-size: 11px;
+      color: var(--gold);
+      font-family: var(--font-mono);
+      text-align: left;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+      box-shadow: 0 4px 24px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      background: #c5313e;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px var(--accent-glow);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      text-decoration: none;
+    }
+
+    body.light .btn-secondary {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--border-hover);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-subtle);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 2px;
+      animation: bounce 2.5s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      100% {
+        transform: translateX(-50%) translateY(0);
+      }
+
+      50% {
+        transform: translateX(-50%) translateY(6px);
+      }
+    }
+
+    .hero-scroll svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.5;
+    }
 
     /* ── LAYOUT ── */
     .main-content {
-      padding-top: calc(var(--nav-h) + 64px);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -283,64 +888,79 @@
 
     .page {
       width: 100%;
-      max-width: 720px;
-      padding: 0 24px 120px;
-      animation: pageIn 0.45s cubic-bezier(0.4,0,0.2,1) forwards;
+      max-width: 740px;
+      padding: 80px 24px 120px;
+      animation: pageIn 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
     @keyframes pageIn {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* ── TYPOGRAPHY ── */
     .eyebrow {
       font-family: var(--font-mono);
-      font-size: 11px;
+      font-size: 10px;
       color: var(--accent);
       text-transform: uppercase;
       letter-spacing: 3px;
-      margin-bottom: 20px;
-      opacity: 0.85;
+      margin-bottom: 18px;
+      opacity: 0.9;
     }
 
     .title {
       font-family: var(--font-display);
-      font-size: 56px;
-      font-weight: 700;
+      font-size: 52px;
+      font-weight: 400;
+      font-style: italic;
       line-height: 1.0;
-      letter-spacing: -1.5px;
-      margin-bottom: 28px;
+      letter-spacing: -1px;
+      margin-bottom: 24px;
       color: var(--text);
     }
-    body.light .title { color: #111; }
-    body.light .title span { color: var(--accent) !important; }
+
+    body.light .title {
+      color: #111;
+    }
 
     .lead {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 300;
       color: var(--text-muted);
       line-height: 1.65;
-      margin-bottom: 56px;
-      max-width: 520px;
+      margin-bottom: 48px;
+      max-width: 540px;
     }
 
     .section-title {
-      font-family: var(--font-display);
-      font-size: 17px;
+      font-family: var(--font-body);
+      font-size: 15px;
       font-weight: 600;
-      letter-spacing: -0.2px;
-      margin: 52px 0 14px;
+      letter-spacing: 0.2px;
+      margin: 48px 0 12px;
       color: var(--text);
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    body.light .section-title { color: #111; }
+
+    body.light .section-title {
+      color: #111;
+    }
+
     .section-title::before {
       content: '';
       display: inline-block;
-      width: 3px; height: 14px;
+      width: 3px;
+      height: 13px;
       background: var(--accent);
       border-radius: 2px;
       flex-shrink: 0;
@@ -350,27 +970,89 @@
       font-size: 15px;
       color: var(--text-muted);
       line-height: 1.75;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       font-weight: 300;
     }
-    .paragraph strong { color: var(--text); font-weight: 500; }
-    body.light .paragraph strong { color: #222; }
+
+    .paragraph strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    body.light .paragraph strong {
+      color: #222;
+    }
+
     .paragraph code {
       font-family: var(--font-mono);
       font-size: 12px;
-      background: rgba(255,255,255,0.06);
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border);
       padding: 1px 6px;
       border-radius: 4px;
       color: var(--accent);
     }
-    body.light .paragraph code { background: rgba(0,0,0,0.05); }
+
+    body.light .paragraph code {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    /* ── STAT ROW ── */
+    .stat-row {
+      display: flex;
+      gap: 0;
+      padding: 24px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin: 36px 0;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 0 28px;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat-item:first-child {
+      padding-left: 0;
+    }
+
+    .stat-item:last-child {
+      border-right: none;
+    }
+
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-subtle);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .stat-value {
+      font-family: var(--font-body);
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+
+    body.light .stat-value {
+      color: #111;
+    }
+
+    .stat-value span {
+      color: var(--accent);
+    }
 
     /* ── HOME CARDS ── */
     .grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
+      gap: 10px;
       margin-top: 8px;
     }
 
@@ -378,12 +1060,13 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 24px;
+      padding: 22px;
       cursor: pointer;
       transition: border-color 0.25s, background 0.25s, transform 0.2s;
       position: relative;
       overflow: hidden;
     }
+
     .card::after {
       content: '';
       position: absolute;
@@ -392,487 +1075,1253 @@
       opacity: 0;
       transition: opacity 0.3s;
     }
-    .card:hover { border-color: var(--border-hover); background: var(--surface-2); transform: translateY(-1px); }
-    .card:hover::after { opacity: 1; }
 
-    .card-num { font-family: var(--font-mono); font-size: 10px; color: var(--text-subtle); letter-spacing: 1px; margin-bottom: 12px; }
-    .card-title { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.2px; color: var(--text); }
-    body.light .card-title { color: #111; }
-    .card-text { font-size: 13px; color: var(--text-muted); line-height: 1.5; font-weight: 300; }
-    .card-arrow { position: absolute; bottom: 20px; right: 20px; color: var(--text-subtle); font-size: 16px; transition: color 0.25s, transform 0.25s; }
-    .card:hover .card-arrow { color: var(--accent); transform: translate(2px, -2px); }
+    .card:hover {
+      border-color: var(--border-hover);
+      background: var(--surface-2);
+      transform: translateY(-1px);
+    }
 
-    /* ── MEMBERS SECTION ── */
-    .members-section { margin-top: 80px; }
-    .members-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 8px; }
+    .card:hover::after {
+      opacity: 1;
+    }
+
+    .card-num {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-subtle);
+      letter-spacing: 1px;
+      margin-bottom: 11px;
+    }
+
+    .card-title {
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 7px;
+      letter-spacing: -0.1px;
+      color: var(--text);
+    }
+
+    body.light .card-title {
+      color: #111;
+    }
+
+    .card-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      font-weight: 300;
+    }
+
+    .card-arrow {
+      position: absolute;
+      bottom: 18px;
+      right: 18px;
+      color: var(--text-subtle);
+      font-size: 16px;
+      transition: color 0.25s, transform 0.25s;
+    }
+
+    .card:hover .card-arrow {
+      color: var(--accent);
+      transform: translate(2px, -2px);
+    }
+
+    /* ── MEMBERS ── */
+    .members-section {
+      margin-top: 72px;
+    }
+
+    .members-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
 
     .member-card {
-      display: flex; align-items: center; gap: 14px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 16px 20px;
+      padding: 14px 18px;
       text-decoration: none;
       color: var(--text-muted);
       transition: border-color 0.25s, background 0.25s, color 0.2s, transform 0.2s;
     }
-    .member-card:hover { border-color: var(--accent); background: var(--surface-2); color: var(--accent); transform: translateY(-1px); }
+
+    .member-card:hover {
+      border-color: var(--accent);
+      background: var(--surface-2);
+      transform: translateY(-1px);
+    }
 
     .member-avatar {
-      width: 36px; height: 36px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       background: var(--accent-dim);
-      border: 1px solid var(--accent);
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 700;
+      border: 1px solid rgba(230, 57, 70, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
       color: var(--accent);
       flex-shrink: 0;
     }
-    .member-name { font-family: var(--font-display); font-size: 14px; font-weight: 500; }
-    body.light .member-name { color: #111; }
-    .member-card:hover .member-name { color: var(--accent); }
-    .member-github { font-family: var(--font-mono); font-size: 10px; color: var(--text-subtle); margin-top: 2px; }
-    .member-role { font-family: var(--font-mono); font-size: 11px; color: var(--accent); margin-top: 2px; }
+
+    .member-name {
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    body.light .member-name {
+      color: #111;
+    }
+
+    .member-card:hover .member-name {
+      color: var(--accent);
+    }
+
+    .member-role {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      margin-top: 1px;
+    }
+
+    .member-github {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-subtle);
+      margin-top: 1px;
+    }
 
     /* ── DIVIDER ── */
-    .divider { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 44px 0;
+    }
 
     /* ── TABS ── */
     .tabs {
-      display: flex; gap: 0;
+      display: flex;
+      gap: 0;
       background: var(--surface);
       padding: 3px;
       border-radius: 8px;
       border: 1px solid var(--border);
-      margin-bottom: 40px;
+      margin-bottom: 36px;
       width: fit-content;
     }
+
     .tab {
-      padding: 7px 18px; border-radius: 6px; border: none;
-      background: none; color: var(--text-muted);
-      cursor: pointer; font-family: var(--font-body); font-size: 13px;
+      padding: 7px 16px;
+      border-radius: 6px;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 13px;
       transition: color 0.2s, background 0.2s;
     }
-    .tab.active { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
-    body.light .tab.active { color: #111; }
+
+    .tab.active {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    body.light .tab.active {
+      color: #111;
+    }
 
     /* ── TERMINAL ── */
-    .terminal { border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.09); margin-bottom: 14px; box-shadow: 0 14px 28px rgba(0,0,0,0.4); }
-    .terminal-bar { background: #1c1c1e; padding: 8px 14px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .t-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .t-dot.red { background: #ff5f57; }
-    .t-dot.yellow { background: #febc2e; }
-    .t-dot.green { background: #28c840; }
-    .terminal-title { font-family: var(--font-mono); font-size: 10px; color: #666; margin: 0 auto; letter-spacing: 0.5px; }
-    .terminal-body { background: #101012; padding: 16px 20px; overflow-x: auto; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; color: #c8d0d8; white-space: pre; }
-    .terminal-body::-webkit-scrollbar { height: 4px; }
-    .terminal-body::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-    .t-cmd { color: var(--accent); }
-    .t-prompt { color: #555; user-select: none; }
-    .t-str { color: #9fd9a7; }
-    .t-kw { color: #82b8e8; }
-    .t-fn { color: #d4a8f0; }
-    .t-num { color: #f0c060; }
-
-    /* ── STATUS BADGE ── */
-    .status-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(0,136,255,0.08); padding: 8px 16px; border-radius: 50px; border: 1px solid rgba(0,136,255,0.2); color: #0088ff; font-size: 12px; font-family: var(--font-mono); margin-top: 12px; }
-    .status-pulse { width: 7px; height: 7px; border-radius: 50%; background: #0088ff; animation: pulse 2s infinite; }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,136,255,0.4); }
-      50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(0,136,255,0); }
+    .terminal {
+      border-radius: 9px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 12px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
     }
 
-    /* ── INFO ROW ── */
-    .info-row { display: flex; gap: 32px; padding: 24px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 40px 0; }
-    .info-item { display: flex; flex-direction: column; gap: 4px; }
-    .info-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 1.5px; }
-    .info-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
-    body.light .info-value { color: #111; }
-    .info-value span { color: var(--accent); }
+    .terminal-bar {
+      background: #1a1a1c;
+      padding: 8px 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .t-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .t-dot.red {
+      background: #ff5f57;
+    }
+
+    .t-dot.yellow {
+      background: #febc2e;
+    }
+
+    .t-dot.green {
+      background: #28c840;
+    }
+
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #555;
+      margin: 0 auto;
+      letter-spacing: 0.5px;
+    }
+
+    .terminal-body {
+      background: #0d0d0f;
+      padding: 14px 18px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.65;
+      color: #c0c8d0;
+      white-space: pre;
+    }
+
+    .terminal-body::-webkit-scrollbar {
+      height: 3px;
+    }
+
+    .terminal-body::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 2px;
+    }
+
+    .t-cmd {
+      color: var(--accent);
+    }
+
+    .t-str {
+      color: #9fd9a7;
+    }
+
+    .t-kw {
+      color: #82b8e8;
+    }
+
+    .t-fn {
+      color: #d4a8f0;
+    }
+
+    .t-num {
+      color: #f0c060;
+    }
+
+    .t-prompt {
+      color: #444;
+      user-select: none;
+    }
 
     /* ── BULLET LIST ── */
-    .bullet-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-    .bullet-item { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; color: var(--text-muted); line-height: 1.6; }
-    .bullet-icon { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); margin-top: 8px; flex-shrink: 0; }
-    .bullet-item strong { color: var(--text); font-weight: 500; }
-    body.light .bullet-item strong { color: #222; }
-
-    @media (max-width: 700px) {
-      .navbar { width: calc(100% - 32px); padding: 0 14px; }
-      .nav-links { display: none; }
-      .page { padding-left: 20px; padding-right: 20px; }
-      .title { font-size: 40px; letter-spacing: -1px; }
-      .grid, .members-grid { grid-template-columns: 1fr; }
-      .info-row { flex-wrap: wrap; gap: 20px; }
+    .bullet-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      margin-bottom: 18px;
     }
-/* ── CAROUSEL ── */
-.carousel { position: relative; width: 100%; margin: 28px 0; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border);}
-.carousel-track { display: flex; transition: transform 0.4s cubic-bezier(0.4,0,0.2,1); }
-.carousel-slide { min-width: 100%; }
-.carousel-slide img, .carousel-slide gif { width: 100%; display: block; max-height: 420px; object-fit: contain; }
-.carousel-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; border: none; background: rgba(0,0,0,0.55); color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 10; }
-.carousel-nav:hover { background: var(--accent); }
-.carousel-nav.prev { left: 10px; }
-.carousel-nav.next { right: 10px; }
-.carousel-dots { display: flex; justify-content: center; gap: 6px; padding: 10px 0 12px; background: var(--surface); }
-.carousel-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-subtle); border: none; cursor: pointer; padding: 0; transition: background 0.2s, transform 0.2s; }
-.carousel-dot.active { background: var(--accent); transform: scale(1.3); }
-.carousel-caption { font-family: var(--font-mono); font-size: 10px; color: var(--text-subtle); text-align: center; padding: 0 0 10px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+    .bullet-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .bullet-icon {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin-top: 8px;
+      flex-shrink: 0;
+    }
+
+    .bullet-item strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    body.light .bullet-item strong {
+      color: #222;
+    }
+
+    /* ── SPEC TABLE ── */
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0 28px;
+    }
+
+    .spec-table tr {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .spec-table td {
+      padding: 10px 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .spec-table td:first-child {
+      color: var(--text-subtle);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      width: 38%;
+      padding-right: 16px;
+    }
+
+    .spec-table td:last-child {
+      color: var(--text-muted);
+    }
+
+    .spec-table td strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* ── STATUS BADGE ── */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 136, 80, 0.08);
+      padding: 8px 14px;
+      border-radius: 50px;
+      border: 1px solid rgba(0, 136, 80, 0.2);
+      color: #00c864;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      margin-top: 10px;
+    }
+
+    .status-pulse {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #00c864;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(0, 200, 100, 0.4);
+      }
+
+      50% {
+        opacity: 0.7;
+        box-shadow: 0 0 0 4px rgba(0, 200, 100, 0);
+      }
+    }
+
+    /* ── CAROUSEL ── */
+    .carousel {
+      position: relative;
+      width: 100%;
+      margin: 24px 0;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .carousel-track {
+      display: flex;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .carousel-slide {
+      min-width: 100%;
+    }
+
+    .carousel-slide img {
+      width: 100%;
+      display: block;
+      max-height: 400px;
+      object-fit: contain;
+    }
+
+    .carousel-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      z-index: 10;
+    }
+
+    .carousel-nav:hover {
+      background: var(--accent);
+    }
+
+    .carousel-nav.prev {
+      left: 10px;
+    }
+
+    .carousel-nav.next {
+      right: 10px;
+    }
+
+    .carousel-dots {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      padding: 9px 0 11px;
+      background: var(--surface);
+    }
+
+    .carousel-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--text-subtle);
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .carousel-dot.active {
+      background: var(--accent);
+      transform: scale(1.3);
+    }
+
+    .carousel-caption {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-subtle);
+      text-align: center;
+      padding: 0 0 9px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: var(--surface);
+    }
+
+    /* ── HIGHLIGHT BOX ── */
+    .highlight-box {
+      background: var(--accent-dim);
+      border: 1px solid rgba(230, 57, 70, 0.2);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin: 20px 0;
+    }
+
+    .highlight-box p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .highlight-box strong {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* ── GOLD BOX ── */
+    .gold-box {
+      background: var(--gold-dim);
+      border: 1px solid rgba(201, 168, 76, 0.2);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin: 20px 0;
+    }
+
+    .gold-box p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .gold-box strong {
+      color: var(--gold);
+      font-weight: 500;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 700px) {
+      .navbar {
+        width: calc(100% - 28px);
+        padding: 0 12px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .hero-title {
+        letter-spacing: -1px;
+      }
+
+      .page {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .title {
+        font-size: 36px;
+      }
+
+      .grid,
+      .members-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stat-row {
+        gap: 16px;
+      }
+
+      .stat-item {
+        border-right: none;
+        padding: 0;
+      }
+
+      .price-callout {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .price-divider {
+        width: 60px;
+        height: 1px;
+      }
+    }
   </style>
 </head>
+
 <body>
-<div id="root"></div>
+  <div id="root"></div>
 
-<script type="text/babel">
-const { useState, useEffect, useCallback } = React;
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useRef } = React;
 
-const NAV = [
-  { id: "mechanics",   label: "Mechanics"   },
-  { id: "electronics", label: "Electronics" },
-  { id: "software",    label: "Software"    },
-  { id: "management",  label: "Management"  },
-];
+    const NAV = [
+      { id: "mechanics", label: "Mechanics" },
+      { id: "electronics", label: "Electronics" },
+      { id: "software", label: "Software" },
+      { id: "management", label: "Management" },
+    ];
 
-const MEMBERS = [
-  { name: "Nico Alcaraz",         initials: "NA", role: "Team Manager/Low-Level Software",  github: "nllortfer",         url: "https://github.com/nllortfer" },
-  { name: "Daniel Picazo",        initials: "DP", role: "Electronics",         github: "DaniPic-05",        url: "https://github.com/DaniPic-05" },
-  { name: "Guillem de las Muelas",initials: "GM", role: "High-Level Software", github: "GuilleMuac2",       url: "https://github.com/GuilleMuac2" },
-  { name: "Jan Martinez",         initials: "JM", role: "Mechanics",           github: "JanMartinezFerrer", url: "https://github.com/JanMartinezFerrer" },
-];
+    const MEMBERS = [
+      { name: "Nico Alcaraz", initials: "NA", role: "Team Manager · Low-Level SW", github: "nllortfer", url: "https://github.com/nllortfer" },
+      { name: "Daniel Picazo", initials: "DP", role: "Electronics", github: "DaniPic-05", url: "https://github.com/DaniPic-05" },
+      { name: "Guillem de las Muelas", initials: "GM", role: "High-Level Software", github: "GuilleMuac2", url: "https://github.com/GuilleMuac2" },
+      { name: "Jan Martinez", initials: "JM", role: "Mechanics", github: "JanMartinezFerrer", url: "https://github.com/JanMartinezFerrer" },
+    ];
 
-function Terminal({ title = "bash", children }) {
-  return (
-    <div className="terminal">
-      <div className="terminal-bar">
-        <div className="t-dot red"/><div className="t-dot yellow"/><div className="t-dot green"/>
-        <span className="terminal-title">{title}</span>
-      </div>
-      <div className="terminal-body">{children}</div>
-    </div>
-  );
-}
-function Carousel({ slides }) {
-  const [i, setI] = useState(0);
-  const prev = () => setI(n => (n - 1 + slides.length) % slides.length);
-  const next = () => setI(n => (n + 1) % slides.length);
-  return (
-    <div className="carousel">
-      <div className="carousel-track" style={{transform:`translateX(-${i*100}%)`}}>
-        {slides.map((s, idx) => (
-          <div className="carousel-slide" key={idx}>
-            <img src={s.src} alt={s.caption} />
+    /* ── LOGO MARK ── */
+    function LogoMark({ small }) {
+      const size = small ? 24 : 30;
+      return (
+        <div className="nav-logo-mark" style={{ width: size, height: size }}>
+          <span style={{ position: 'relative', zIndex: 1, fontSize: small ? 9 : 10 }}>LQR</span>
+          <div className="nav-logo-bracket-br" />
+        </div>
+      );
+    }
+
+    /* ── TERMINAL ── */
+    function Terminal({ title = "bash", children }) {
+      return (
+        <div className="terminal">
+          <div className="terminal-bar">
+            <div className="t-dot red" /><div className="t-dot yellow" /><div className="t-dot green" />
+            <span className="terminal-title">{title}</span>
           </div>
-        ))}
-      </div>
-      {slides.length > 1 && <>
-        <button className="carousel-nav prev" onClick={prev}>‹</button>
-        <button className="carousel-nav next" onClick={next}>›</button>
-      </>}
-      <div className="carousel-dots">
-        {slides.map((_,idx) => <button key={idx} className={`carousel-dot ${idx===i?'active':''}`} onClick={()=>setI(idx)}/>)}
-      </div>
-      {slides[i].caption && <div className="carousel-caption">{slides[i].caption}</div>}
-    </div>
-  );
-}
+          <div className="terminal-body">{children}</div>
+        </div>
+      );
+    }
 
-
-function PageHome({ navigate }) {
-  const cards = [
-    { id:"mechanics",   num:"01", title:"Mechanics",   desc:"12-DoF, internal transformer, 2.5kg load." },
-    { id:"electronics", num:"02", title:"Electronics", desc:"ESP32-S3 logic, AS5600L encoders, MPU9250." },
-    { id:"software",    num:"03", title:"Software",    desc:"Actor-Critic RL, ONNX, Zenoh-DDS, Firmware." },
-    { id:"management",  num:"04", title:"Management",  desc:"Scrum workflow, cross-functional synergies." },
-  ];
-  return (
-    <div className="page">
-      <div className="eyebrow">Mechatronics Engineering</div>
-      <h1 className="title">Quad<span style={{color:'var(--accent)'}}>Bot</span></h1>
-      <p className="lead">A quadrupedal robot capable of autonomous locomotion controlled entirely through Reinforcement Learning.</p>
-      <h2 className="section-title">Objectives</h2>
-<p className="paragraph">This project encompasses the design, construction, and training of a <strong>quadrupedal robot</strong> capable of achieving fluent autonomous locomotion, including forward, backward, and rotational movements. The prototype is engineered to support a total payload of up to 2.5kg and features a pluggable power system for unlimited operational autonomy. The architecture integrates both radio-controlled manual override and intelligent autonomous navigation powered by <strong>Reinforcement Learning</strong>.</p>
-<h2 className="section-title">Sections</h2>
-<div className="grid">
-        {cards.map(c => (
-          <div className="card" key={c.id} onClick={() => navigate(c.id)}>
-            <div className="card-num">{c.num}</div>
-            <div className="card-title">{c.title}</div>
-            <div className="card-text">{c.desc}</div>
-            <div className="card-arrow">↗</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="members-section">
-        <h2 className="section-title">Members</h2>
-	<div className="members-grid">
-          {MEMBERS.map(m => (
-            <a key={m.github} href={m.url} target="_blank" rel="noreferrer" className="member-card">
-              <div className="member-avatar">{m.initials}</div>
-              <div>
-                <div className="member-name">{m.name}</div>
-                <div className="member-role">{m.role}</div>
-                <div className="member-github">@{m.github}</div>
+    /* ── CAROUSEL ── */
+    function Carousel({ slides }) {
+      const [i, setI] = useState(0);
+      if (!slides || slides.length === 0) return null;
+      const prev = () => setI(n => (n - 1 + slides.length) % slides.length);
+      const next = () => setI(n => (n + 1) % slides.length);
+      return (
+        <div className="carousel">
+          <div className="carousel-track" style={{ transform: `translateX(-${i * 100}%)` }}>
+            {slides.map((s, idx) => (
+              <div className="carousel-slide" key={idx}>
+                <img src={s.src} alt={s.caption} />
               </div>
-            </a>
-          ))}
+            ))}
+          </div>
+          {slides.length > 1 && <>
+            <button className="carousel-nav prev" onClick={prev}>‹</button>
+            <button className="carousel-nav next" onClick={next}>›</button>
+          </>}
+          <div className="carousel-dots">
+            {slides.map((_, idx) => <button key={idx} className={`carousel-dot ${idx === i ? 'active' : ''}`} onClick={() => setI(idx)} />)}
+          </div>
+          {slides[i].caption && <div className="carousel-caption">{slides[i].caption}</div>}
         </div>
-      </div>
-    </div>
-  );
-}
+      );
+    }
 
-function PageMechanics() {
-  return (
-    <div className="page">
-      <div className="eyebrow">01 / Mechanics</div>
-      <h1 className="title" style={{fontSize:'40px'}}>Mechanics</h1>
-      <div className="info-row">
-        <div className="info-item"><span className="info-label">Payload</span><span className="info-value">2.5<span>kg</span></span></div>
-        <div className="info-item"><span className="info-label">Degrees of Freedom</span><span className="info-value">12<span>DoF</span></span></div>
-        <div className="info-item"><span className="info-label">Stall Torque</span><span className="info-value">2.45<span> N·m</span></span></div>
-      </div>
-      <h2 className="section-title">Dessign</h2>
-      <p className="paragraph">CAD dessign is performed using <strong>PTC Creo</strong> environment. All the single parts of the project and assemblies are done there. On the other hand, the model required for simulations is made in a conventional <code>.xml</code> file, as it is the required format for <strong>mjlab</strong>.</p>
-      <h2 className="section-title">Chassis & Payload</h2>
-      <p className="paragraph">The prototype features a rigid central chassis supporting a total load of up to <strong>2.5 kg</strong>. Instead of relying on a heavy onboard battery for continuous training, the chassis integrates an internal <strong>transformer</strong> to allow unlimited tethered operation during the learning phase.</p>
-      <h2 className="section-title">Kinematics & Linkages (12 DoF)</h2>
-      <p className="paragraph">Each leg has 3 Degrees of Freedom (DoF). To maximize leg speed and reduce mass at the extremities, actuators are concentrated in the hips. We use <strong>rod-linkage transmissions</strong> to actuate the knee joints, severely minimizing leg inertia for highly dynamic locomotion.</p>
-      <h2 className="section-title">Images</h2>
-	<Carousel slides={[
-  { src:"images/robot-assembly.png", caption:"Full robot assembly — PTC Creo" },
-  { src:"images/leg-assembly.png",   caption:"Single leg assembly — rod-linkage detail" },
-]} />
-    </div>
-  );
-}
+    /* ── VIDEO PLAYER ── */
+    function VideoPlayer({ src }) {
+      const videoRef = useRef(null);
+      const [playing, setPlaying] = useState(false);
 
-function PageElectronics() {
-  return (
-    <div className="page">
-      <div className="eyebrow">02 / Electronics</div>
-      <h1 className="title" style={{fontSize:'40px'}}>Electronics</h1>
-      <div className="info-row">
-        <div className="info-item"><span className="info-label">MCU</span><span className="info-value" style={{fontSize:'18px',paddingTop:'4px'}}>ESP32<span>-S3</span></span></div>
-        <div className="info-item"><span className="info-label">Encoder</span><span className="info-value" style={{fontSize:'18px',paddingTop:'4px'}}>AS5600<span>L</span></span></div>
-        <div className="info-item"><span className="info-label">IMU</span><span className="info-value" style={{fontSize:'18px',paddingTop:'4px'}}>MPU<span>9250</span></span></div>
-      </div>
-      <h2 className="section-title">Power & Logic</h2>
-      <p className="paragraph">The system is governed by an <strong>ESP32-S3</strong> microcontroller. To prevent the massive current spikes of 12 servos from crashing the logic, our custom PCB uses <strong>LM2596S regulators</strong> to completely isolate motor power from the multicore processing unit.</p>
-      <h2 className="section-title">Actuation & Perception</h2>
-      <p className="paragraph">Signals are sent via a <strong>PCA9685 PWM driver</strong>. The control policy relies on two critical sensors:</p>
-      <div className="bullet-list">
-        <div className="bullet-item"><div className="bullet-icon"/><span><strong>AS5600L Magnetic Encoders:</strong> For precise, non-contact absolute positioning of joints.</span></div>
-        <div className="bullet-item"><div className="bullet-icon"/><span><strong>MPU9250 IMU:</strong> A 9DOF sensor (Accelerometer, Gyroscope, Magnetometer) providing continuous state data.</span></div>
-      </div>
-    </div>
-  );
-}
+      const toggle = () => {
+        const v = videoRef.current;
+        if (!v) return;
+        if (v.paused) {
+          v.play();
+          setPlaying(true);
+        } else {
+          v.pause();
+          setPlaying(false);
+        }
+      };
 
-function PageSoftware() {
-  const [tab, setTab] = useState('control');
-  return (
-    <div className="page">
-      <div className="eyebrow">03 / Software</div>
-      <h1 className="title" style={{fontSize:'40px'}}>Software & Firmware</h1>
-      <div className="tabs">
-        <button className={`tab ${tab === 'control' ? 'active' : ''}`} onClick={() => setTab('control')}>Control (RL)</button>
-        <button className={`tab ${tab === 'firmware' ? 'active' : ''}`} onClick={() => setTab('firmware')}>ESP32-S3 Firmware</button>
-      </div>
-      {tab === 'control' && (
+      const onEnded = () => setPlaying(false);
+
+      return (
+        <div className="video-player-wrap" onClick={toggle}>
+          <video ref={videoRef} src={src} onEnded={onEnded} playsInline />
+          <div className={`video-poster-overlay ${playing ? 'hidden' : ''}`}>
+            <div className="play-btn">
+              <div className="play-btn-ring" />
+              <div className="play-icon" />
+            </div>
+          </div>
+          <div className="video-label">LoQuRo · Promotion Reel</div>
+        </div>
+      );
+    }
+
+    /* ── HOME ── */
+    function PageHome({ navigate }) {
+      const cards = [
+        { id: "mechanics", num: "01", title: "Mechanics", desc: "12-DoF, four-bar linkage, 2.5 kg load capacity. Full custom design." },
+        { id: "electronics", num: "02", title: "Electronics", desc: "ESP32-S3, AS5600 encoders with I²C multiplexers, MPU-9250 IMU, custom dual PCB." },
+        { id: "software", num: "03", title: "Software", desc: "PPO Actor-Critic RL, MuJoCo sim, ONNX inference, Zenoh-DDS, ROS 2." },
+        { id: "management", num: "04", title: "Management", desc: "Scrum methodology, 7 sprints, GitHub Projects kanban workflow." },
+      ];
+      return (
         <div>
-          <h2 className="section-title">Actor-Critic Architecture (MJLab)</h2>
-          <p className="paragraph">Our RL simulation is built on MuJoCo using the GPU-accelerated mjlab framework. We use an <strong>Actor-Critic architecture</strong>, completely abandoning classical Inverse Kinematics. The network processes the State directly into joint-level commands, and the resulting Value Functions are exported as <strong>ONNX models</strong> for edge inference.</p>
-          <h2 className="section-title">Reward Shaping & Sim-to-Real</h2>
-          <p className="paragraph">We are actively iterating on reward shaping to avoid "local minima". Currently, it heavily incentivizes achieving a 1.0 m/s linear velocity. The <code>quadruped_robot.xml</code> environment mirrors the physical 2.5kg, 12-DoF hardware, modeling stall torques (2.45 N·m) and dynamic damping losses.</p>
-          <h2 className="section-title">How to Run</h2>
-          <p className="paragraph" style={{marginBottom:'10px'}}><strong>1. Install dependencies</strong></p>
-          <Terminal title="install"><span className="t-prompt">$ </span><span className="t-cmd">uv sync</span></Terminal>
-          <p className="paragraph" style={{marginTop:'24px',marginBottom:'10px'}}><strong>2. Train the RL Agent</strong></p>
-          <Terminal title="train"><span className="t-prompt">$ </span><span className="t-cmd">uv run train</span> Mjlab-Velocity-Flat-Quad-Bot <span className="t-str">--envs.scene.num-envs 1024</span></Terminal>
-          <p className="paragraph" style={{marginTop:'24px',marginBottom:'10px'}}><strong>3. Play the visualization</strong></p>
-          <Terminal title="play"><span className="t-prompt">$ </span><span className="t-cmd">uv run play</span> Mjlab-Velocity-Flat-Quad-Bot /path/to/log/files</Terminal>
-      <h2 className="section-title">Images</h2>
-	<Carousel slides={[
-  { src:"images/robot-movement.gif", caption:"Developement test of robot movement — MuJoCo" },
-  { src:"images/robot-stats.png",   caption:"Rewards graphics of robot learning — Wandb" },
-]} />
+          {/* HERO */}
+          <div className="hero">
+            <div className="hero-bg" />
+            <div className="hero-overlay" />
+            <div className="hero-content">
+              <div className="hero-eyebrow">
+                <div className="hero-eyebrow-dot" />
+                Mechatronics Engineering · UVic-UCC · June 2026
+              </div>
+              <h1 className="hero-title">
+                Lo<span className="accent">Qu</span>Ro
+              </h1>
+              <div className="hero-subtitle">Lowcost Quadruped Robot</div>
+              <p className="hero-desc">
+                A fully custom-designed quadrupedal robot capable of autonomous locomotion
+                controlled entirely through Reinforcement Learning — built for under 300 €.
+              </p>
+
+              {/* VIDEO PLAYER — 16:9 clickable */}
+              <VideoPlayer src="images/promotion.mp4" />
+
+              <div className="price-callout">
+                <div className="price-item">
+                  <span className="price-label">LoQuRo cost</span>
+                  <span className="price-value ours">~300 €</span>
+                </div>
+                <div className="price-divider" />
+                <div className="price-item">
+                  <span className="price-label">vs Unitree Go2</span>
+                  <span className="price-value theirs">1.600–3.000 €</span>
+                </div>
+                <div className="price-divider" />
+                <div>
+                  <p className="price-note">Less than 25% of the cost</p>
+                  <p className="price-note">of a commercial platform</p>
+                </div>
+              </div>
+
+              <div className="hero-cta">
+                <button className="btn-primary" onClick={() => {
+                  document.getElementById('sections').scrollIntoView({ behavior: 'smooth' });
+                }}>
+                  Explore the project ↓
+                </button>
+                <a href="https://github.com/Integrated-Project-2-2026-UVic-UCC/Team1" target="_blank" rel="noreferrer" className="btn-secondary">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>
+                  GitHub
+                </a>
+              </div>
+            </div>
+            <div className="hero-scroll">
+              SCROLL
+              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg>
+            </div>
+          </div>
+
+          {/* SECTIONS */}
+          <div id="sections" style={{ width: '100%', maxWidth: '740px', margin: '0 auto', padding: '80px 24px 120px' }}>
+            <div className="eyebrow">01 / Project Overview</div>
+            <h1 className="title">LoQu<span style={{ color: 'var(--accent)', fontStyle: 'normal' }}>Ro</span></h1>
+            <p className="lead">
+              LoQuRo bridges the gap between expensive commercial platforms and DIY hobby projects —
+              delivering a fully custom 12-DoF quadruped trained entirely with Reinforcement Learning,
+              for a fraction of the price.
+            </p>
+
+            <div className="gold-box">
+              <p>
+                <strong>The innovation lies in cost-to-performance ratio.</strong> Using 3D-printed ASA/PLA,
+                high-torque serial bus servos and magnetic absolute encoders, the total BOM is kept under 300 €
+                — less than 25% of a Unitree Go2 — while executing complex RL-trained gait patterns.
+              </p>
+            </div>
+
+            <h2 className="section-title">Objectives</h2>
+            <div className="bullet-list">
+              <div className="bullet-item"><div className="bullet-icon" /><span><strong>Digital twin</strong> to ensure a successful Sim-to-Real transition via MuJoCo</span></div>
+              <div className="bullet-item"><div className="bullet-icon" /><span><strong>Fluent locomotion</strong> — forward, backward and rotational movement</span></div>
+              <div className="bullet-item"><div className="bullet-icon" /><span><strong>Compact leg modules</strong> — one 3-servo block per leg with four-bar linkage</span></div>
+              <div className="bullet-item"><div className="bullet-icon" /><span><strong>Unlimited autonomy</strong> via tethered transformer power during training</span></div>
+              <div className="bullet-item"><div className="bullet-icon" /><span><strong>Total payload</strong> up to 2.5 kg with a real prototype weight of 1.8 kg</span></div>
+              <div className="bullet-item"><div className="bullet-icon" /><span><strong>Remote control</strong> — keyboard-driven velocity commands over wireless link</span></div>
+            </div>
+
+            <h2 className="section-title">Sections</h2>
+            <div className="grid">
+              {cards.map(c => (
+                <div className="card" key={c.id} onClick={() => navigate(c.id)}>
+                  <div className="card-num">{c.num}</div>
+                  <div className="card-title">{c.title}</div>
+                  <div className="card-text">{c.desc}</div>
+                  <div className="card-arrow">↗</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="members-section">
+              <h2 className="section-title">Team</h2>
+              <div className="members-grid">
+                {MEMBERS.map(m => (
+                  <a key={m.github} href={m.url} target="_blank" rel="noreferrer" className="member-card">
+                    <div className="member-avatar">{m.initials}</div>
+                    <div>
+                      <div className="member-name">{m.name}</div>
+                      <div className="member-role">{m.role}</div>
+                      <div className="member-github">@{m.github}</div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
-      )}
-      {tab === 'firmware' && (
-        <div>
-          <h2 className="section-title">ESP32-S3 & Zenoh DDS</h2>
-          <p className="paragraph">The Firmware includes a <strong>PlatformIO project for an ESP32-S3</strong> to send PWM signals using a custom <code>PCA9685.h</code> library, and read RAW data from the 9DOF MPU9250 IMU.</p>
-          <p className="paragraph">To make communication between hardware and software entirely wireless, we use <strong>Zenoh</strong>. Via Wi-Fi, Zenoh acts as a layer to interact with ROS2 middleware through <code>zenoh-bridge-ros2dds</code>.</p>
-          <h2 className="section-title">Robot Operation & Network Setup</h2>
-          <p className="paragraph">On the first boot, the ESP32-S3 creates a Wi-Fi network. Connect to it to specify the <strong>SSID</strong>, <strong>Password</strong> and the <strong>Locator IP</strong>. This is saved in memory.</p>
-          <div className="status-badge"><div className="status-pulse"/>Builtin LED 2 is BLUE when communication is ready.</div>
-          <h2 className="section-title">Execution & Testing</h2>
-          <p className="paragraph" style={{marginBottom:'10px'}}><strong>1. Enable Bridge</strong></p>
-	  <p className="paragraph">Before starting the robot, make sure you have the Zenoh broker and Zenoh-DDS bridge running.</p>
-          <Terminal title="zenoh-bridge"><span className="t-prompt">$ </span><span className="t-cmd">zenoh-bridge-ros2dds</span></Terminal>
-          <p className="paragraph" style={{marginTop:'24px',marginBottom:'10px'}}><strong>2. IMU Sensor Madgwick Filter</strong></p>
-	  <p className="paragraph">After the calibration, you can now test the Madgwick filter to know if the IMU got correctly calibrated.</p>
-          <Terminal title="imu-filter"><span className="t-prompt">$ </span><span className="t-cmd">ros2 run</span> imu_filter_madgwick imu_filter_madgwick_node <span className="t-str">--ros-args</span> \{'\n'}    <span className="t-str">-r</span> imu/data_raw:=/imu/data_raw \{'\n'}    <span className="t-str">-r</span> imu/mag:=/imu/mag \{'\n'}    <span className="t-str">-p</span> use_mag:=true</Terminal>
-          <p className="paragraph" style={{marginTop:'24px',marginBottom:'10px'}}><strong>3. Visualizer</strong></p>
-          <Terminal title="rviz2"><span className="t-prompt">$ </span><span className="t-cmd">rviz2</span></Terminal>
-      <h2 className="section-title">Images</h2>
-	<Carousel slides={[
-  { src:"images/imu-movement.gif", caption:"IMU message representation - Rviz2" },
-]} />
+      );
+    }
+
+    /* ── MECHANICS ── */
+    function PageMechanics() {
+      return (
+        <div className="page">
+          <div className="eyebrow">01 / Mechanics</div>
+          <h1 className="title" style={{ fontSize: '40px' }}>Mechanics</h1>
+          <div className="stat-row">
+            <div className="stat-item"><span className="stat-label">Total DOF</span><span className="stat-value">12<span>DoF</span></span></div>
+            <div className="stat-item"><span className="stat-label">Servo Torque</span><span className="stat-value">2.45<span>Nm</span></span></div>
+            <div className="stat-item"><span className="stat-label">Prototype Mass</span><span className="stat-value">1.8<span>kg</span></span></div>
+            <div className="stat-item"><span className="stat-label">Safety Factor</span><span className="stat-value">2.46<span>×</span></span></div>
+          </div>
+
+          <h2 className="section-title">Architecture</h2>
+          <p className="paragraph">
+            LoQuRo features a central chassis and four identical articulated legs. Each leg has <strong>3 degrees of freedom</strong>
+            driven by digital servomotors handling hip abduction/adduction, femur rotation and tibia actuation. The chassis
+            concentrates mass near the centre, improving stability and reducing inertia during turning manoeuvres.
+          </p>
+
+          <h2 className="section-title">Four-Bar Linkage & Inertia Reduction</h2>
+          <p className="paragraph">
+            The defining mechanical decision is the <strong>four-bar linkage transmission</strong>. Rather than mounting the
+            tibia actuator at the knee joint, all three servos per leg are positioned as close as possible to the robot body.
+            Lightweight aluminium rods transmit motion to the distal segments.
+          </p>
+          <div className="highlight-box">
+            <p>
+              Moving the tibia actuator from the knee to the body reduces its rotational inertia contribution by a factor of
+              <strong> ~13.4×</strong> (I = mr²: from 7.26×10⁻⁴ kg·m² to 5.4×10⁻⁵ kg·m²). This allowed low-cost
+              servomotors to operate with a safety factor of <strong>2.46</strong> under real prototype conditions.
+            </p>
+          </div>
+
+          <h2 className="section-title">Hip Shoulder Design & Encoder Integration</h2>
+          <p className="paragraph">
+            A key structural challenge discovered during testing was the hip joint. The original design transmitted ground-impact
+            loads through the servo shaft, causing progressive play. The redesign introduced a <strong>phenolic reinforcement plate,
+              an independent support shaft and a dedicated bushing</strong> to isolate structural loads from the actuator.
+          </p>
+          <p className="paragraph">
+            The shoulder/hip assembly also integrates the <strong>AS5600 magnetic encoder system</strong> mechanically. A custom
+            encoder support structure with a snap-fit magnet carrier is embedded in the hip geometry, ensuring precise and
+            repeatable sensor-to-magnet alignment without additional fastening elements.
+          </p>
+
+          <h2 className="section-title">Materials</h2>
+          <table className="spec-table">
+            <tbody>
+              <tr><td>Structural leg parts</td><td><strong>ASA</strong> — impact resistance, thermal stability, long-term durability</td></tr>
+              <tr><td>Secondary supports</td><td><strong>PLA</strong> — dimensional accuracy, low cost, reliable printability</td></tr>
+              <tr><td>Transmission linkage</td><td><strong>Aluminium rods</strong> — high stiffness-to-weight, fatigue resistance</td></tr>
+              <tr><td>Feet</td><td><strong>Hot-melt adhesive</strong> — high friction, compliance, easy replacement</td></tr>
+              <tr><td>Infill density</td><td>~12% with geometric reinforcement in critical areas</td></tr>
+            </tbody>
+          </table>
+
+          <h2 className="section-title">CAD</h2>
+          <p className="paragraph">
+            All parts and assemblies are designed in <strong>PTC Creo</strong>. The simulation model is defined in <code>loquro.xml</code>
+            using the MJCF format, accurately mirroring the physical geometry including equality constraints for the four-bar linkage.
+          </p>
+
+          <h2 className="section-title">Images</h2>
+          <Carousel slides={[
+            { src: "images/leg-assembly.png", caption: "Leg assembly — four-bar linkage detail" },
+          ]} />
         </div>
-      )}
-    </div>
-  );
-}
+      );
+    }
 
-function PageManagement() {
-  return (
-    <div className="page">
-      <div className="eyebrow">04 / Management</div>
-      <h1 className="title" style={{fontSize:'40px'}}>Scrum & Operations</h1>
-      <p className="paragraph">Building a complex hardware-software system requires intense cross-functional collaboration. We operate using strict <strong>Scrum operations</strong>, ensuring all mechanical, electronic, and software milestones are perfectly aligned.</p>
-      <h2 className="section-title">Synergies & Workflow</h2>
-      <p className="paragraph">The boundaries between hardware and software are erased in our team. Mechanics define the physical limits for the RL environment directly. Electronics optimize the PCB specifically to reduce overheating and wire the comunication buses correctly. Firmware software is focused on reducing the latency for ONNX inference and get all the data from periphericals and send the recived data to actuators as fast as possible.</p> 
-      <h2 className="section-title">Online management</h2>
-      <p className="paragraph">Every single step is logged via GitHub Projects and Kanban boards, ensuring full traceability from CAD design to Neural Network training.</p>
-    </div>
-  );
-}
+    /* ── ELECTRONICS ── */
+    function PageElectronics() {
+      return (
+        <div className="page">
+          <div className="eyebrow">02 / Electronics</div>
+          <h1 className="title" style={{ fontSize: '40px' }}>Electronics</h1>
+          <div className="stat-row">
+            <div className="stat-item"><span className="stat-label">MCU</span><span className="stat-value" style={{ fontSize: '20px', paddingTop: '4px' }}>ESP32<span>-S3</span></span></div>
+            <div className="stat-item"><span className="stat-label">Encoder</span><span className="stat-value" style={{ fontSize: '20px', paddingTop: '4px' }}>AS5600</span></div>
+            <div className="stat-item"><span className="stat-label">IMU</span><span className="stat-value" style={{ fontSize: '20px', paddingTop: '4px' }}>MPU<span>-9250</span></span></div>
+            <div className="stat-item"><span className="stat-label">Total BOM</span><span className="stat-value" style={{ fontSize: '20px', paddingTop: '4px' }}>277<span>€</span></span></div>
+          </div>
 
-/* ── APP ── */
-function App() {
-  const [page, setPage]         = useState("home");
-  const [navHidden, setNavHidden] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
+          <h2 className="section-title">Dual PCB Architecture</h2>
+          <p className="paragraph">
+            All electronics are centralised on two custom-designed stacked PCBs manufactured by JLCPCB on FR4, 1.6 mm,
+            1 oz copper, both sharing a <strong>130 × 50 mm footprint</strong> for clean mechanical integration.
+          </p>
+          <div className="bullet-list">
+            <div className="bullet-item"><div className="bullet-icon" />
+              <span><strong>Power PCB:</strong> Four XL4015 buck converters (12V → 6V), one per leg, each powering 3 servos.
+                The 12 servo headers are soldered here to keep high-current paths away from logic. Wide copper polygons act as passive heatsinks.</span>
+            </div>
+            <div className="bullet-item"><div className="bullet-icon" />
+              <span><strong>Control PCB:</strong> Hosts the ESP32-S3, PCA9685 PWM driver, MPU-9250 IMU and the two TCA9548A
+                I²C multiplexers. A separate fifth XL4015 provides isolated 5V logic power.</span>
+            </div>
+          </div>
 
-  useEffect(() => {
-    document.body.classList.toggle('light', !darkMode);
-  }, [darkMode]);
+          <h2 className="section-title">12 Absolute Encoders with I²C Multiplexing</h2>
+          <p className="paragraph">
+            Every joint is fitted with an <strong>AS5600 magnetic absolute encoder</strong> for precise, non-contact position
+            feedback. Since all AS5600 devices share a fixed I²C address, connecting them directly would cause bus conflicts.
+          </p>
+          <p className="paragraph">
+            The solution: <strong>two TCA9548A I²C multiplexers</strong> — electronically controlled switches that selectively
+            connect one sensor channel at a time, allowing all 12 encoders to coexist on a single bus without interference.
+            The firmware acquisition task sequentially cycles through channels to read all joint angles.
+          </p>
+          <div className="highlight-box">
+            <p>
+              The ESP32-S3 uses <strong>dual hardware I²C buses</strong>: Port 0 is dedicated to the PCA9685 servo driver for
+              low-latency PWM actuation; Port 1 is dedicated to the IMU and the two multiplexers for all 12 encoder readings —
+              eliminating bus contention between actuation and sensing.
+            </p>
+          </div>
 
-  useEffect(() => {
-    let lastY = window.scrollY;
-    const onScroll = () => {
-      const y = window.scrollY;
-      // Hide navbar only when sidebar is closed and scrolling down
-      if (!sidebarOpen) setNavHidden(y > lastY && y > 80);
-      lastY = y;
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [sidebarOpen]);
+          <h2 className="section-title">Power System</h2>
+          <p className="paragraph">
+            A <strong>12V 12.5A AC/DC transformer</strong> was selected over LiPo batteries for three reasons: unlimited runtime
+            during RL training, significant weight savings, and cost compliance with the 300 € budget.
+            The total average draw is ~8.7 A at 12V (88.6 W), with ~45 W headroom for dynamic locomotion spikes.
+          </p>
+          <div className="bullet-list">
+            <div className="bullet-item"><div className="bullet-icon" /><span><strong>Actuators (6V):</strong> 4 × XL4015 on Power PCB, one per leg — ~3.6 A average per module</span></div>
+            <div className="bullet-item"><div className="bullet-icon" /><span><strong>Logic (5V):</strong> Standalone 5th XL4015, isolated from servo noise</span></div>
+            <div className="bullet-item"><div className="bullet-icon" /><span><strong>Sensors (3.3V):</strong> ESP32-S3 internal LDO for IMU, multiplexers and encoders</span></div>
+          </div>
 
-  // When sidebar opens, always show navbar (and hide hamburger from navbar)
-  useEffect(() => {
-    if (sidebarOpen) setNavHidden(false);
-  }, [sidebarOpen]);
+          <h2 className="section-title">Bill of Materials</h2>
+          <table className="spec-table">
+            <tbody>
+              <tr><td>Microcontroller</td><td><strong>ESP32-S3</strong> — 11.99 €</td></tr>
+              <tr><td>Servo motors ×12</td><td><strong>Binghe 25KG Digital</strong> — 155.94 €</td></tr>
+              <tr><td>PWM driver</td><td><strong>PCA9685</strong> — 6.99 €</td></tr>
+              <tr><td>IMU</td><td><strong>MPU-9250 SparkFun</strong> — 21.95 €</td></tr>
+              <tr><td>Encoders ×12</td><td><strong>AS5600 magnetic</strong> — 34.68 €</td></tr>
+              <tr><td>I²C Multiplexers ×2</td><td><strong>TCA9548A</strong> — 2.80 €</td></tr>
+              <tr><td>Voltage regulators ×5</td><td><strong>XL4015 buck converters</strong> — 12.99 €</td></tr>
+              <tr><td>Custom PCBs ×2</td><td><strong>JLCPCB</strong> — 13.40 €</td></tr>
+              <tr><td>Power supply</td><td><strong>12V 12.5A</strong> — 16.99 €</td></tr>
+              <tr><td style={{ fontWeight: 600 }}>Total</td><td><strong>277.73 €</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+      );
+    }
 
-  const navigate = useCallback((id) => {
-    setPage(id);
-    setSidebarOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
+    /* ── SOFTWARE ── */
+    function PageSoftware() {
+      const [tab, setTab] = useState('rl');
+      return (
+        <div className="page">
+          <div className="eyebrow">03 / Software</div>
+          <h1 className="title" style={{ fontSize: '40px' }}>Software & Firmware</h1>
+          <div className="tabs">
+            <button className={`tab ${tab === 'rl' ? 'active' : ''}`} onClick={() => setTab('rl')}>RL & Control</button>
+            <button className={`tab ${tab === 'firmware' ? 'active' : ''}`} onClick={() => setTab('firmware')}>ESP32 Firmware</button>
+          </div>
 
-  const pages = {
-    home:        <PageHome navigate={navigate} />,
-    mechanics:   <PageMechanics />,
-    electronics: <PageElectronics />,
-    software:    <PageSoftware />,
-    management:  <PageManagement />,
-  };
+          {tab === 'rl' && (
+            <div>
+              <h2 className="section-title">MuJoCo Simulation & PPO Training</h2>
+              <p className="paragraph">
+                The locomotion policy is trained inside the <strong>MuJoCo physics engine</strong> using the GPU-accelerated
+                <strong> mjlab</strong> framework, which executes thousands of parallel simulation environments on GPU.
+                The robot's 1.8 kg mass distribution and custom four-bar linkage kinematics are defined in MJCF format using
+                equality constraints to accurately represent torque transmission.
+              </p>
+              <p className="paragraph">
+                The core algorithm is <strong>Proximal Policy Optimization (PPO)</strong> — an Actor-Critic method favoured for its
+                stability in legged robotics. The actor network outputs target positions for all 12 joints while the PPO clipping
+                objective prevents destructive policy updates, steering the robot from random exploration toward structured,
+                command-driven locomotion.
+              </p>
 
-  return (
-    <>
-      {/* NAVBAR — hamburger hidden when sidebar open */}
-      <nav className={`navbar ${navHidden ? 'hidden' : ''}`}>
-        <div className="nav-left">
-          {!sidebarOpen && (
-            <button className="hamburger" onClick={() => setSidebarOpen(true)} aria-label="Open menu">
-              <svg viewBox="0 0 24 24">
-                <line x1="3" y1="7" x2="21" y2="7"/>
-                <line x1="3" y1="12" x2="21" y2="12"/>
-                <line x1="3" y1="17" x2="21" y2="17"/>
-              </svg>
-            </button>
+              <h2 className="section-title">Reward Shaping</h2>
+              <div className="bullet-list">
+                <div className="bullet-item"><div className="bullet-icon" /><span><strong>Linear & angular velocity tracking</strong> (weight 2.0) — primary locomotion objective</span></div>
+                <div className="bullet-item"><div className="bullet-icon" /><span><strong>Upright posture reward</strong> (weight 1.0) — penalises torso tilt and horizontal deviation</span></div>
+                <div className="bullet-item"><div className="bullet-icon" /><span><strong>Air-time reward</strong> (weight 0.25) — encourages natural trot gait with regular foot liftoff</span></div>
+                <div className="bullet-item"><div className="bullet-icon" /><span><strong>Energy & action-rate penalties</strong> — filters high-frequency vibrations that could damage servos</span></div>
+                <div className="bullet-item"><div className="bullet-icon" /><span><strong>DOF position limit penalties</strong> — enforces joint range constraints</span></div>
+              </div>
+
+              <h2 className="section-title">Sim-to-Real Transition</h2>
+              <p className="paragraph">
+                Once the policy plateaus and demonstrates robustness against perturbations, the model is exported to
+                <strong> ONNX format</strong>. A ROS 2 Inference Node running at <strong>50 Hz</strong> loads the ONNX file,
+                reads IMU and encoder data, builds a 33-dimensional observation vector, runs inference with the ONNX Runtime
+                engine, and publishes 12 joint position targets to the <code>/joint_commands</code> topic.
+              </p>
+              <p className="paragraph">
+                Joint commands are transmitted wirelessly to the ESP32 via <strong>Zenoh middleware</strong> bridged to ROS 2
+                through <code>zenoh-bridge-ros2dds</code>, providing the ultra-low latency required for real-time stability.
+              </p>
+
+              <h2 className="section-title">How to Train</h2>
+              <p className="paragraph" style={{ marginBottom: '8px' }}><strong>1. Sync environment</strong></p>
+              <Terminal title="setup"><span className="t-prompt">$ </span><span className="t-cmd">uv sync</span>{"\n"}<span className="t-prompt">$ </span><span className="t-cmd">uv run list-envs</span>  <span className="t-str"># should show Mjlab-Velocity-Flat-LoQuRo</span></Terminal>
+              <p className="paragraph" style={{ marginTop: '20px', marginBottom: '8px' }}><strong>2. Launch training (4096 parallel envs)</strong></p>
+              <Terminal title="train"><span className="t-prompt">$ </span><span className="t-cmd">uv run train</span> Mjlab-Velocity-Flat-LoQuRo <span className="t-str">--env.scene.num-envs 4096</span></Terminal>
+              <p className="paragraph" style={{ marginTop: '20px', marginBottom: '8px' }}><strong>3. Run inference with a trained policy</strong></p>
+              <Terminal title="play"><span className="t-prompt">$ </span><span className="t-cmd">uv run play.py</span> loco_v0 <span className="t-str">--vx 0.3 --vy 0.0 --omega 0.0</span></Terminal>
+
+              <h2 className="section-title">Viewer Controls</h2>
+              <table className="spec-table">
+                <tbody>
+                  <tr><td>↑ / ↓</td><td>Increase / decrease forward velocity (vx) by 0.05 m/s</td></tr>
+                  <tr><td>← / →</td><td>Increase / decrease yaw rate (omega) by 0.1 rad/s</td></tr>
+                  <tr><td>W / S</td><td>Increase / decrease lateral velocity (vy) by 0.05 m/s</td></tr>
+                  <tr><td>Space</td><td>Zero all commands — robot stands still</td></tr>
+                  <tr><td>R</td><td>Reset simulation to initial stance</td></tr>
+                </tbody>
+              </table>
+
+              <h2 className="section-title">Images</h2>
+              <Carousel slides={[
+                { src: "images/robot-stats.png", caption: "Rewards & penalties — successful training run · W&B" },
+              ]} />
+            </div>
           )}
-          <div className="nav-logo" onClick={() => navigate("home")}>
-            <div className="nav-logo-dot"/>
-            Quad<span style={{color:'var(--accent)'}}>Bot</span>
+
+          {tab === 'firmware' && (
+            <div>
+              <h2 className="section-title">Architecture</h2>
+              <p className="paragraph">
+                The firmware runs on the <strong>ESP32-S3</strong> using <strong>FreeRTOS</strong> for real-time multitasking.
+                Rather than implementing locomotion on the microcontroller, the firmware is a black box: it receives joint
+                position commands and returns sensor data. Computationally intensive tasks — state estimation and RL inference —
+                execute on an external controller (laptop or Raspberry Pi).
+              </p>
+              <p className="paragraph">
+                The codebase follows a <strong>Separation of Concerns</strong> principle. Independent FreeRTOS tasks handle
+                sensor acquisition, PWM actuation, Zenoh communication and a watchdog. Dual I²C buses decouple servo control
+                from sensor reading. Inter-task data flows through thread-safe <strong>FreeRTOS queues</strong>.
+              </p>
+
+              <h2 className="section-title">Communication: Zenoh Middleware</h2>
+              <p className="paragraph">
+                Wireless communication uses <strong>Eclipse Zenoh</strong> — a lightweight pub-sub middleware designed for
+                resource-constrained embedded devices. It interfaces with the ROS 2 ecosystem via
+                <code>zenoh-bridge-ros2dds</code>, so ROS 2 nodes see the robot as a conventional DDS participant.
+                Measured average latency: <strong>7.7 ms on Core 1 / 9.4 ms on Core 0</strong>.
+              </p>
+              <div className="status-badge"><div className="status-pulse" />Builtin LED turns BLUE when Zenoh communication is established.</div>
+
+              <h2 className="section-title">First-Time Network Setup</h2>
+              <p className="paragraph">
+                On first boot the ESP32 creates a Wi-Fi access point called <strong>LoQuRo</strong>. Connect to it — a
+                captive portal opens automatically. Enter your Wi-Fi SSID, password and the IP of the ROS 2 host.
+                Configuration is saved in flash; the robot reboots and connects automatically on subsequent power-ons.
+              </p>
+
+              <h2 className="section-title">IMU Calibration Procedure</h2>
+              <p className="paragraph" style={{ marginBottom: '8px' }}>Every power-on requires a calibration sequence:</p>
+              <div className="bullet-list">
+                <div className="bullet-item"><div className="bullet-icon" /><span>When the <strong>green LED turns on</strong>, place the robot on a stable surface and hold still for ~5 seconds (gyroscope + accelerometer calibration)</span></div>
+                <div className="bullet-item"><div className="bullet-icon" /><span>Then slowly rotate the robot through all orientations to calibrate the <strong>magnetometer</strong></span></div>
+                <div className="bullet-item"><div className="bullet-icon" /><span>Once complete, the robot automatically moves to its <strong>initial standing pose</strong></span></div>
+              </div>
+
+              <h2 className="section-title">Startup Sequence</h2>
+              <p className="paragraph" style={{ marginBottom: '8px' }}><strong>1. Start the Zenoh bridge</strong></p>
+              <Terminal title="zenoh-bridge"><span className="t-prompt">$ </span><span className="t-cmd">zenoh-bridge-ros2dds</span></Terminal>
+              <p className="paragraph" style={{ marginTop: '20px', marginBottom: '8px' }}><strong>2. Run Madgwick IMU filter</strong></p>
+              <Terminal title="imu-filter"><span className="t-prompt">$ </span><span className="t-cmd">ros2 run</span> imu_filter_madgwick imu_filter_madgwick_node <span className="t-str">--ros-args</span> \{'\n'}    <span className="t-str">-r</span> imu/data_raw:=/imu/data_raw <span className="t-str">-r</span> imu/mag:=/imu/mag <span className="t-str">-p</span> use_mag:=true</Terminal>
+              <p className="paragraph" style={{ marginTop: '20px', marginBottom: '8px' }}><strong>3. Visualise in RViz2</strong></p>
+              <Terminal title="rviz2"><span className="t-prompt">$ </span><span className="t-cmd">rviz2</span></Terminal>
+
+              <h2 className="section-title">Images</h2>
+              <Carousel slides={[
+                { src: "images/imu-movement.gif", caption: "IMU orientation in real time — RViz2" },
+              ]} />
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    /* ── MANAGEMENT ── */
+    function PageManagement() {
+      return (
+        <div className="page">
+          <div className="eyebrow">04 / Management</div>
+          <h1 className="title" style={{ fontSize: '40px' }}>Scrum & Operations</h1>
+          <div className="stat-row">
+            <div className="stat-item"><span className="stat-label">Sprints</span><span className="stat-value">7</span></div>
+            <div className="stat-item"><span className="stat-label">Duration</span><span className="stat-value">4<span>mo</span></span></div>
+            <div className="stat-item"><span className="stat-label">Man-hours</span><span className="stat-value">523<span>h</span></span></div>
+            <div className="stat-item"><span className="stat-label">Members</span><span className="stat-value">4</span></div>
+          </div>
+
+          <h2 className="section-title">Methodology</h2>
+          <p className="paragraph">
+            The project followed <strong>Scrum agile methodology</strong> with 7 sprints over four months.
+            Weekly Tuesday meetings served as sprint planning, status checks and retrospectives.
+            Every task, bug and feature was tracked on a <strong>GitHub Projects Kanban board</strong> with
+            five stages: Backlog → Ready → In Progress → In Review → Done.
+          </p>
+
+          <h2 className="section-title">Cross-Functional Synergies</h2>
+          <p className="paragraph">
+            The discipline boundaries dissolved intentionally. Mechanics defined the physical constraints
+            that fed directly into the MuJoCo MJCF model. Electronics optimised the PCB layout to reduce
+            I²C bus contention and servo voltage noise. Firmware minimised inference latency so the ONNX
+            policy runs at 50 Hz over a wireless link with sub-10 ms average latency.
+          </p>
+
+          <h2 className="section-title">Task Categories</h2>
+          <div className="bullet-list">
+            <div className="bullet-item"><div className="bullet-icon" /><span><strong>Tasks</strong> — mandatory activities aligned with sprint objectives</span></div>
+            <div className="bullet-item"><div className="bullet-icon" /><span><strong>Bugs</strong> — unexpected issues requiring corrective action (e.g. hip joint play, XL4015 voltage drops)</span></div>
+            <div className="bullet-item"><div className="bullet-icon" /><span><strong>Features</strong> — optional improvements to functionality, usability or performance</span></div>
+          </div>
+
+          <h2 className="section-title">Time Investment</h2>
+          <table className="spec-table">
+            <tbody>
+              <tr><td>Jan Martinez</td><td><strong>135 h</strong> — Mechanics</td></tr>
+              <tr><td>Guillem de las Muelas</td><td><strong>126 h</strong> — High-Level Software</td></tr>
+              <tr><td>Nico Alcaraz</td><td><strong>133 h</strong> — Team Manager / Low-Level SW</td></tr>
+              <tr><td>Daniel Picazo</td><td><strong>129 h</strong> — Electronics</td></tr>
+              <tr><td>Total</td><td><strong>523 h</strong></td></tr>
+            </tbody>
+          </table>
+
+          <h2 className="section-title">Project Cost</h2>
+          <div className="gold-box">
+            <p>
+              Total hardware cost: <strong>~300 €</strong> (277.73 € electronics + 22.26 € mechanical components).
+              For reference, a Unitree Go2 starts at 1,600 €. LoQuRo delivers comparable RL-trained locomotion
+              capabilities at <strong>less than 19% of the cost</strong>.
+            </p>
           </div>
         </div>
+      );
+    }
 
-        <div className="nav-links">
-          {NAV.map(n => (
-            <button key={n.id} className={`nav-link ${page === n.id ? 'active' : ''}`} onClick={() => navigate(n.id)}>
-              {n.label}
+    /* ── APP ── */
+    function App() {
+      const [page, setPage] = useState("home");
+      const [navHidden, setNavHidden] = useState(false);
+      const [sidebarOpen, setSidebarOpen] = useState(false);
+      const [darkMode, setDarkMode] = useState(true);
+
+      useEffect(() => {
+        document.body.classList.toggle('light', !darkMode);
+      }, [darkMode]);
+
+      useEffect(() => {
+        let lastY = window.scrollY;
+        const onScroll = () => {
+          const y = window.scrollY;
+          if (!sidebarOpen) setNavHidden(y > lastY && y > 100);
+          lastY = y;
+        };
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+      }, [sidebarOpen]);
+
+      useEffect(() => {
+        if (sidebarOpen) setNavHidden(false);
+      }, [sidebarOpen]);
+
+      const navigate = useCallback((id) => {
+        setPage(id);
+        setSidebarOpen(false);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, []);
+
+      const pages = {
+        home: <PageHome navigate={navigate} />,
+        mechanics: <PageMechanics />,
+        electronics: <PageElectronics />,
+        software: <PageSoftware />,
+        management: <PageManagement />,
+      };
+
+      return (
+        <>
+          <nav className={`navbar ${navHidden ? 'hidden' : ''}`}>
+            <div className="nav-left">
+              {!sidebarOpen && (
+                <button className="hamburger" onClick={() => setSidebarOpen(true)} aria-label="Open menu">
+                  <svg viewBox="0 0 24 24">
+                    <line x1="3" y1="7" x2="21" y2="7" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="17" x2="21" y2="17" />
+                  </svg>
+                </button>
+              )}
+              <div className="nav-logo" onClick={() => navigate("home")} style={{ cursor: 'pointer' }}>
+                <LogoMark />
+                <span className="nav-logo-text">Lo<span className="accent">Qu</span>Ro</span>
+              </div>
+            </div>
+
+            <div className="nav-links">
+              {NAV.map(n => (
+                <button key={n.id} className={`nav-link ${page === n.id ? 'active' : ''}`} onClick={() => navigate(n.id)}>
+                  {n.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="nav-right">
+              <a href="https://github.com/Integrated-Project-2-2026-UVic-UCC/Team1" target="_blank" rel="noreferrer" className="repo-link">
+                <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>
+              </a>
+            </div>
+          </nav>
+
+          <div className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)} />
+          <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+            <div className="sidebar-header">
+              <div className="sidebar-logo">
+                <LogoMark small />
+                Lo<span style={{ color: 'var(--accent)' }}>Qu</span>Ro
+              </div>
+              <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>✕</button>
+            </div>
+
+            <div className="sidebar-section-label">Navigation</div>
+            <nav className="sidebar-nav">
+              <button className={`sidebar-link ${page === 'home' ? 'active' : ''}`} onClick={() => navigate('home')}>
+                <div className="sidebar-link-dot" />Home
+              </button>
+              {NAV.map(n => (
+                <button key={n.id} className={`sidebar-link ${page === n.id ? 'active' : ''}`} onClick={() => navigate(n.id)}>
+                  <div className="sidebar-link-dot" />{n.label}
+                </button>
+              ))}
+            </nav>
+
+            <hr className="sidebar-divider" />
+            <div className="sidebar-section-label">Preferences</div>
+            <button className="theme-toggle" onClick={() => setDarkMode(d => !d)}>
+              <span style={{ fontSize: '14px' }}>{darkMode ? '☀️' : '🌙'}</span>
+              {darkMode ? 'Light Mode' : 'Dark Mode'}
             </button>
-          ))}
-        </div>
 
-        <div className="nav-right">
-          <a href="https://github.com/Integrated-Project-2-2026-UVic-UCC/Team1" target="_blank" rel="noreferrer" className="repo-link">
-            <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-          </a>
-        </div>
-      </nav>
+            <div className="sidebar-bottom">
+              <hr className="sidebar-divider" />
+              <a href="https://github.com/Integrated-Project-2-2026-UVic-UCC/Team1" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                <button className="sidebar-link" style={{ width: '100%' }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                  </svg>
+                  View Repository
+                </button>
+              </a>
+            </div>
+          </aside>
 
-      {/* SIDEBAR OVERLAY */}
-      <div className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)}/>
+          <main className="main-content" key={page}>
+            {pages[page]}
+          </main>
+        </>
+      );
+    }
 
-      {/* SIDEBAR */}
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="sidebar-logo">
-            <div className="nav-logo-dot"/>
-            Quad<span style={{color:'var(--accent)'}}>Bot</span>
-          </div>
-          <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>✕</button>
-        </div>
-
-        <div className="sidebar-section-label">Navigation</div>
-        <nav className="sidebar-nav">
-          <button className={`sidebar-link ${page === 'home' ? 'active' : ''}`} onClick={() => navigate('home')}>
-            <div className="sidebar-link-dot"/>Home
-          </button>
-          {NAV.map(n => (
-            <button key={n.id} className={`sidebar-link ${page === n.id ? 'active' : ''}`} onClick={() => navigate(n.id)}>
-              <div className="sidebar-link-dot"/>{n.label}
-            </button>
-          ))}
-        </nav>
-
-        <hr className="sidebar-divider"/>
-
-        <div className="sidebar-section-label">Preferences</div>
-        <button className="theme-toggle" onClick={() => setDarkMode(d => !d)}>
-          <span className="theme-icon">{darkMode ? '☀️' : '🌙'}</span>
-          {darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-        </button>
-
-        <div className="sidebar-bottom">
-          <hr className="sidebar-divider"/>
-          <a href="https://github.com/Integrated-Project-2-2026-UVic-UCC/Team1" target="_blank" rel="noreferrer" style={{textDecoration:'none'}}>
-            <button className="sidebar-link" style={{width:'100%'}}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{flexShrink:0}}>
-                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-              </svg>
-              View Repository
-            </button>
-          </a>
-        </div>
-      </aside>
-
-      <main className="main-content" key={page}>
-        {pages[page]}
-      </main>
-    </>
-  );
-}
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-</script>
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
 </body>
+
 </html>
