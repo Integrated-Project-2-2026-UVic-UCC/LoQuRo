@@ -93,13 +93,13 @@ Transitioning from prototype to robust product. Planned upgrades include XL4016 
 
 The architecture is cleanly separated into distinct, highly documented modules:
 
-* **[Control & AI](https://www.google.com/search?q=https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Software):** Sim-to-real pipelines, MuJoCo digital twins, PPO training scripts, and ROS 2 high-level nodes.
-* **[Firmware](https://www.google.com/search?q=https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Software):** The critical embedded layer. Highly optimized FreeRTOS multicore routines on ESP32-S3, Zenoh DDS bridging, and low-latency I²C sensor polling.
-* **[Mechanics](https://www.google.com/search?q=https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Mechanics):** PTC Creo CAD source files, STP assemblies, and URDF/MJCF simulation meshes.
-* **[Electronics](https://www.google.com/search?q=https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Electronics):** EasyEDA schematics, stackable PCB layouts, and comprehensive BOM.
+* **[Control & AI](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Software):** Sim-to-real pipelines, MuJoCo digital twins, PPO training scripts, and ROS 2 high-level nodes.
+* **[Firmware](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Software):** The critical embedded layer. Highly optimized FreeRTOS multicore routines on ESP32-S3, Zenoh DDS bridging, and low-latency I²C sensor polling.
+* **[Mechanics](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Mechanics):** PTC Creo CAD source files, STP assemblies, and URDF/MJCF simulation meshes.
+* **[Electronics](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Electronics):** EasyEDA schematics, stackable PCB layouts, and comprehensive BOM.
 
 **Quick Links:**
-[Project Website](https://www.google.com/search?q=https://integrated-project-2-2026-uvic-ucc.github.io/LoQuRo/) | [Technical PDF](https://www.google.com/search?q=https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/raw/main/docs/Technical_doc_IP2.pdf) | [GitHub Repository](https://www.google.com/search?q=https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo)
+[Project Website](https://integrated-project-2-2026-uvic-ucc.github.io/LoQuRo/) | [Technical PDF](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/raw/main/docs/Technical_doc_IP2.pdf) | [GitHub Repository](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo)
 
 ---
 
