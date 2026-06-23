@@ -8,8 +8,23 @@
   ![Deep RL](https://img.shields.io/badge/Deep_RL-888580?style=for-the-badge)
   ![ROS 2](https://img.shields.io/badge/ROS_2-e25c3b?style=for-the-badge)
   ![Open Source](https://img.shields.io/badge/Open_Architecture-161616?style=for-the-badge&logo=github&logoColor=white)
+</div>
+---
 
-  <br><br>
+## Repository & Technical Assets
+
+The architecture is cleanly separated into distinct, highly documented modules:
+
+* **[Control & AI](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Software):** Sim-to-real pipelines, MuJoCo digital twins, PPO training scripts, and ROS 2 high-level nodes.
+* **[Firmware](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Software):** The critical embedded layer. Highly optimized FreeRTOS multicore routines on ESP32-S3, Zenoh DDS bridging, and low-latency I²C sensor polling.
+* **[Mechanics](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Mechanics):** PTC Creo CAD source files, STP assemblies, and URDF/MJCF simulation meshes.
+* **[Electronics](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Electronics):** EasyEDA schematics, stackable PCB layouts, and comprehensive BOM.
+
+**Quick Links:**
+[Project Website](https://integrated-project-2-2026-uvic-ucc.github.io/LoQuRo/) | [Technical PDF](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/raw/main/docs/Technical_doc_IP2.pdf) | [GitHub Repository](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo)
+
+---
+</div>
 
   <video controls width="100%" style="max-width: 600px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
     <source src="https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/raw/main/docs/images/promotion.mp4" type="video/mp4">
@@ -86,20 +101,6 @@ Transitioning from prototype to robust product. Planned upgrades include XL4016 
 
 > [!WARNING]
 > **Investment Context:** The hardware interruption during extreme load testing is a known boundary condition of the €300 constraint, not a fundamental design flaw. The control logic, firmware, and mechanical IP are completely sound. An allocation of just €150 in targeted component upgrades permanently resolves this bottleneck for version 2.0.
-
----
-
-## Repository & Technical Assets
-
-The architecture is cleanly separated into distinct, highly documented modules:
-
-* **[Control & AI](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Software):** Sim-to-real pipelines, MuJoCo digital twins, PPO training scripts, and ROS 2 high-level nodes.
-* **[Firmware](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Software):** The critical embedded layer. Highly optimized FreeRTOS multicore routines on ESP32-S3, Zenoh DDS bridging, and low-latency I²C sensor polling.
-* **[Mechanics](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Mechanics):** PTC Creo CAD source files, STP assemblies, and URDF/MJCF simulation meshes.
-* **[Electronics](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Electronics):** EasyEDA schematics, stackable PCB layouts, and comprehensive BOM.
-
-**Quick Links:**
-[Project Website](https://integrated-project-2-2026-uvic-ucc.github.io/LoQuRo/) | [Technical PDF](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/raw/main/docs/Technical_doc_IP2.pdf) | [GitHub Repository](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo)
 
 ---
 
