@@ -9,7 +9,7 @@
   ![ROS 2](https://img.shields.io/badge/ROS_2-e25c3b?style=for-the-badge)
   ![Open Source](https://img.shields.io/badge/Open_Architecture-161616?style=for-the-badge&logo=github&logoColor=white)
 </div>
----
+
 
 ## Repository & Technical Assets
 
