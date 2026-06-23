@@ -10,8 +10,7 @@
   ![Open Source](https://img.shields.io/badge/Open_Architecture-161616?style=for-the-badge&logo=github&logoColor=white)
 </div>
 
-
-## Repository & Technical Assets
+## Repository Structure
 
 The architecture is cleanly separated into distinct, highly documented modules:
 
@@ -24,14 +23,13 @@ The architecture is cleanly separated into distinct, highly documented modules:
 [Project Website](https://integrated-project-2-2026-uvic-ucc.github.io/LoQuRo/) | [Technical PDF](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/raw/main/docs/Technical_doc_IP2.pdf) | [GitHub Repository](https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo)
 
 ---
-</div>
 
+<div align="center">
   <video controls width="100%" style="max-width: 600px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
     <source src="https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/raw/main/docs/images/promotion.mp4" type="video/mp4">
   </video>
   <br>
   <a href="https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/raw/main/docs/images/promotion.mp4">Watch promotional video</a>
-
 </div>
 
 ---
@@ -65,6 +63,10 @@ Rather than mounting the knee actuator directly at the joint, LoQuRo relocates i
 <br>
 The locomotion policy was trained entirely in a digital twin using MuJoCo and mjlab, executing thousands of parallel environments simultaneously on GPU. The resulting ONNX model is highly efficient, running real-time inference on edge devices like a laptop or Raspberry Pi.
 <br><br>
+<div align="center">
+  <img src="docs/images/walking_policy.gif" alt="LoQuRo Walking Policy Simulation" width="100%" style="max-width: 500px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+</div>
+<br>
 <b>Repository link:</b> <a href="https://github.com/Integrated-Project-2-2026-UVic-UCC/LoQuRo/tree/main/Software">View AI & Control Source</a>
 </details>
 
