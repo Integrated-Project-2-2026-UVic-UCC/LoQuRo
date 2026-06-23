@@ -4,9 +4,9 @@ This repository contains the software and simulation environment for the **Loqur
 
 ## Project Structure
 
-The project is organized as a modular Python workspace, with the core logic residing in the `src` directory.
+The project is organized as a modular Python workspace, with the core logic residing in the `loquro_lab` directory.
 
-### Loquro Lab (`src/loquro_lab/`)
+### Loquro Lab (`loquro_lab/`)
 
 `loquro_lab` is a Python package managed with **uv**. It serves as the main research and development sandbox for the robot's control and physics.
 
