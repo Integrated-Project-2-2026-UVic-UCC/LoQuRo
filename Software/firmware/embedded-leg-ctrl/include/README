@@ -21,31 +21,28 @@ Including a header file produces the same results as copying its contents into e
 ## Header Files
 
 ### `config.h`
-Global project configuration. Defines WiFi, Zenoh session mode, and all ROS topic key expressions (`joint_commands`, `joint_states`, `imu/data_raw`, `imu/mag`). Also includes the core Arduino and networking libraries (`WiFi.h`, `WiFiManager.h`, `Preferences.h`, `Wire.h`).
+Global project configuration. Defines the Zenoh session mode, all ROS topic key expressions, the initial pose of the legs (`INIT_POSE`) and the status LED brightness. Also includes the core Arduino and networking libraries (`WiFi.h`, `WiFiManager.h`, `Preferences.h`, `Wire.h`).
 
 ### `hardware.h`
-Hardware abstraction layer. Defines the `Leg` struct, which groups three `PCA9685Servo` joints (HAA, HFE, KFE) per leg, and the `ServoParams` namespace with the PCA9685 channel assignments for all twelve joints across the four legs. Declares the global `pwm` driver, the four `Leg` instances, the `joint_states` matrix, and the `IMUMPU9250` IMU object.
+Hardware abstraction layer. Defines the `Leg` struct, which groups three `PCA9685Servo` joints (HAA, HFE, KFE) per leg, and the `ServoParams` namespace with the PCA9685 channel assignments for all twelve joints across the four legs. Declares the global `pwm` driver, the four `Leg` instances, the `IMUMPU9250` IMU object, and the robot state (`RobotState`, `setState()`, `setDegraded()`) shown in the RGB LED.
 
 ### `PCA9685.h`
 Servo driver wrapper around `Adafruit_PWMServoDriver`. The `PCA9685Servo` class handles conversion from radians (or degrees) to PWM ticks at 100 Hz, with configurable per-joint travel limits. The `PCA9685Cfg` namespace holds the timing constants (`min_us`, `max_us`, `period_us`, `ticks_per_us`).
 
 ### `IMUMPU9250.h`
-IMU driver for the MPU-9250. Exposes `measure` (x/y/z float triplet) and `IMUdata` (accel, gyro, mag) structs. The `IMUMPU9250` class provides `begin()`, `calibrate()`, `calibrateMag()`, and individual `getAccel()` / `getGyro()` / `getMag()` methods. Calibration constants are in the `IMUCfg` namespace.
+IMU driver for the MPU-9250. Exposes `measure` (x/y/z float triplet) and `IMUdata` (accel, gyro, mag) structs. The `IMUMPU9250` class provides `begin()`, `beginMag()`, `calibrate()`, `calibrateMag()`, calibration storage (`loadCalibration()` / `saveCalibration()`), `getAccelGyro()` (single burst read) and `getMag()` (returns false when there is no new valid sample). Calibration constants are in the `IMUCfg` namespace.
 
 ### `mailbox.h`
-FreeRTOS inter-task communication interface. Declares the `Queues` namespace with the four `QueueHandle_t` objects used to pass data between tasks: `joint_states_queue`, `time_stamp_queue`, `encoder_data_queue`, and `imu_data_queue`.
+FreeRTOS inter-task communication interface. Declares the `Queues` namespace with the `QueueHandle_t` objects used to pass data between tasks: `joint_states_queue` and `imu_data_queue`.
 
 ### `tasks.h`
-Declarations for all FreeRTOS tasks and the Zenoh data handler callback: `readEncodersTask`, `readIMUTask`, `writeServosTask`, `sendStatusTask`, `watchdogTask`, and `data_handler`.
+Declarations for all FreeRTOS tasks (`readIMUTask`, `writeServosTask`, `sendStatusTask`, `watchdogTask`, `statusLedTask`), the Zenoh callbacks (`data_handler`, `calibration_handler`) and the IMU availability flags (`imu_ok`, `mag_ok`).
 
 ### `utilities.h`
-Helper functions for serialization, deserialization, and networking. Includes `deserializeJointStates()`, `serializeImu()`, `serializeMag()`, `serializeJointStates()`, `getPreciseTime()`, and `beginNetwork()`. Uses `ucdr/microcdr.h` for CDR-based ROS 2 message encoding.
+Helper functions for serialization, deserialization, and networking. Includes `deserializeJointStates()`, `serializeImu()`, `serializeMag()`, `getPreciseTime()`, `findRouter()` (bridge discovery by Zenoh scouting) and `beginNetwork()`. Uses `ucdr/microcdr.h` for CDR-based ROS 2 message encoding.
 
 ### `zenoh.h`
-Zenoh-pico session interface. Declares the global session object (`z_owned_session_t`), the joint-states subscriber (`z_owned_subscriber_t`), and the three publishers for IMU, magnetometer, and encoder data.
-
-### `ServoCtrl.h`
-Legacy servo driver using the ESP32 LEDC peripheral directly via GPIO pins. Superseded by `PCA9685.h` but kept for reference. The `ServoCtrl` class and `ServoCfg` namespace mirror the PCA9685 interface at 50 Hz.
+Zenoh-pico session interface. Declares the global session object (`z_owned_session_t`), the subscribers for joint commands and IMU calibration requests, and the publishers for IMU and magnetometer data.
 
 ---
 

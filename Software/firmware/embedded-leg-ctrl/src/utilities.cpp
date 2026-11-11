@@ -1,122 +1,129 @@
 // IMPLEMENTATION OF UTILITIES INTERFACE
 #include "utilities.h"
 #include "config.h"
-#include "mailbox.h"
+#include "hardware.h"
 #include "zenoh.h"
 #include <sys/time.h>
 
-bool shouldSaveConfig = false;
-
 // Only for sending
-double getPreciseTime() // standard function to get epoch time via NTP
+double getPreciseTime() // epoch time, synchronized with the PC clock published in robot/time
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0;
 }
 
-void saveConfigCallback()
+struct ScoutResult
 {
-    Serial.println("WIFI MANAGER: Web portal changes detected, flag activated");
-    shouldSaveConfig = true;
+    char locator[64];
+};
+
+// called for every zenoh node that answers the scouting. Keeps a locator reachable from our
+// WiFi network (a PC also announces docker / IPv6 addresses), UDP if available
+static void helloHandler(z_loaned_hello_t *hello, void *context)
+{
+    ScoutResult *result = (ScoutResult *)context;
+    uint32_t mask = (uint32_t)WiFi.subnetMask();
+    uint32_t network = (uint32_t)WiFi.localIP() & mask;
+
+    z_owned_string_array_t locators;
+    z_hello_locators(hello, &locators);
+    const z_loaned_string_array_t *locs = z_string_array_loan(&locators);
+
+    for (size_t i = 0; i < z_string_array_len(locs); i++)
+    {
+        const z_loaned_string_t *str = z_string_array_get(locs, i);
+        char loc[64] = "";
+        strncpy(loc, z_string_data(str), min(z_string_len(str), sizeof(loc) - 1));
+
+        // "protocol/ip:port", only IPv4
+        char protocol[4], ip_str[16];
+        unsigned int port;
+        IPAddress ip;
+        if (sscanf(loc, "%3[a-z]/%15[0-9.]:%u", protocol, ip_str, &port) != 3 || !ip.fromString(ip_str))
+            continue;
+
+        bool udp = strcmp(protocol, "udp") == 0;
+        if ((!udp && strcmp(protocol, "tcp") != 0) || ((uint32_t)ip & mask) != network)
+            continue;
+
+        if (result->locator[0] == '\0' || (udp && strncmp(result->locator, "udp", 3) != 0))
+        {
+            snprintf(result->locator, sizeof(result->locator), "%s/%s:%u", protocol, ip_str, port);
+        }
+    }
+    z_string_array_drop(z_string_array_move(&locators));
+}
+
+// searchs the ROS2 bridge in the local network (zenoh multicast scouting), no IP needed
+bool findRouter(char *locator, size_t locator_size)
+{
+    ScoutResult result = {""};
+
+    z_owned_config_t config;
+    z_config_default(&config);
+    z_owned_closure_hello_t closure;
+    z_closure_hello(&closure, helloHandler, NULL, &result);
+    z_scout(z_config_move(&config), z_closure_hello_move(&closure), NULL); // blocks during the scouting timeout (1 s)
+
+    if (result.locator[0] == '\0')
+        return false;
+
+    strlcpy(locator, result.locator, locator_size);
+    return true;
 }
 
 void beginNetwork()
 {
-    Preferences preferences;
-    char pc_ip[40] = ""; // will save IP
-    preferences.begin("robot", false);
-    String saved_ip = preferences.getString("zenoh_ip", "");
-    strncpy(pc_ip, saved_ip.c_str(), sizeof(pc_ip));
+    setState(STATE_WAIT_WIFI);
 
     WiFiManager wm;
-    wm.setSaveConfigCallback(saveConfigCallback);
     wm.setConnectTimeout(10);
     wm.setConfigPortalTimeout(180);
 
-    WiFiManagerParameter custom_zenoh_ip("zenoh", "PC IP (ROS2)", pc_ip, 40);
-    wm.addParameter(&custom_zenoh_ip);
-
     Serial.println("WIFI MANAGER: Searching for saved SSIDs");
 
-    if (!wm.autoConnect("LoQuRo"))
-    {
-        Serial.println("WIFI MANAGER: Timeout, resetting device");
-        delay(3000);
-        ESP.restart();
-    }
-
-    // if user saved data correctly from web
-    if (shouldSaveConfig)
-    {
-        String new_ip = custom_zenoh_ip.getValue();
-        if (new_ip.length() >= 7)
-        {
-            strncpy(pc_ip, new_ip.c_str(), sizeof(pc_ip));
-            preferences.putString("zenoh_ip", pc_ip);
-            Serial.println("WIFI MANAGER: New network saved");
-        }
-        shouldSaveConfig = false; // not necessary to save config
-    }
+    // tries the saved network, then opens the "LoQuRo" portal. If nobody configures it, tries again
+    while (!wm.autoConnect("LoQuRo"))
+        Serial.println("WIFI MANAGER: Not connected, retrying");
 
     WiFi.setSleep(false);
 
-    char full_locator[60] = "";
-    bool zenoh_connected = false;
+    setState(STATE_WAIT_ROS);
 
-    if (strlen(pc_ip) >= 7)
-    {
-        sprintf(full_locator, "tcp/%s:7447", pc_ip);
-        Serial.printf("ZENOH: Trying to connect Zenoh in: %s\n", full_locator);
-        zenoh_connected = initZenoh(full_locator);
-    }
+    char locator[64];
 
-    if (!zenoh_connected)
-    {
-        Serial.println("ZENOH: Zenoh initialization failed! Opening web portal");
-        digitalWrite(LED_PIN, LOW);
+    Serial.println("ZENOH: Searching the ROS2 bridge in the network");
+    while (!findRouter(locator, sizeof(locator)) || !initZenoh(locator))
+        delay(1000);
 
-        if (wm.startConfigPortal("LoQuRo"))
-        {
-            if (shouldSaveConfig)
-            {
-                String forced_ip = custom_zenoh_ip.getValue();
-                if (forced_ip.length() >= 7)
-                {
-                    strncpy(pc_ip, forced_ip.c_str(), sizeof(pc_ip));
-                    preferences.putString("zenoh_ip", pc_ip);
-                    Serial.printf("WIFI MANAGER: New IP saved correctly!: %s\n", pc_ip);
-                }
-                else
-                {
-                    Serial.println("WIFI MANAGER: IP not valid! Will be ignored");
-                }
-            }
-            Serial.println("SYSTEM: Resetting device to apply changes");
-            delay(2000);
-            ESP.restart();
-        }
-        else
-        {
-            Serial.println("WIFI MANAGER: Timeout reached without configuration, resetting device");
-            delay(2000);
-            ESP.restart();
-        }
-    }
-    // Sincronization time with NTP servers, necessary for correct timestamping of messages (If we dont have WiFi it is not possible)
-    // configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+    Serial.printf("SYSTEM: Zenoh connected succesfully in %s\n", locator);
+}
 
-    // // Esperar sincronización
-    // Serial.print("Syncing NTP");
-    // struct tm timeinfo;
-    // while (!getLocalTime(&timeinfo))
-    // {
-    //     Serial.print(".");
-    //     delay(500);
-    // }
-    // Serial.println(" OK");
+// std_msgs/Bool and std_msgs/UInt8: CDR header + one byte
+uint32_t serializeByte(uint8_t *buffer, uint8_t value)
+{
+    buffer[0] = 0x00;
+    buffer[1] = 0x01; // Little Endian CDR
+    buffer[2] = 0x00;
+    buffer[3] = 0x00;
+    buffer[4] = value;
+    return 5;
+}
 
-    Serial.println("SYSTEM: Zenoh connected succesfully!");
+// builtin_interfaces/Time: CDR header + int32 sec + uint32 nanosec
+bool deserializeTime(const uint8_t *buffer, size_t len, double *time)
+{
+    if (len < 12)
+        return false;
+    ucdrBuffer ub;
+    ucdr_init_buffer(&ub, (uint8_t *)buffer + 4, len - 4);
+    int32_t sec;
+    uint32_t nanosec;
+    ucdr_deserialize_int32_t(&ub, &sec);
+    ucdr_deserialize_uint32_t(&ub, &nanosec);
+    *time = (double)sec + (double)nanosec / 1e9;
+    return true;
 }
 
 // FEATURE: function to deserialize float32Multiarray etc
@@ -164,53 +171,6 @@ bool deserializeJointStates(ucdrBuffer *ub, float target_joints[4][3], double *t
     }
 
     return true;
-}
-
-uint32_t serializeJointStates(uint8_t *buffer, uint32_t size, const float target_joints[4][3], double timestamp)
-{
-    // CDR header
-    buffer[0] = 0x00;
-    buffer[1] = 0x01; // Little Endian CDR
-    buffer[2] = 0x00;
-    buffer[3] = 0x00;
-
-    ucdrBuffer ub;
-    ucdr_init_buffer(&ub, buffer + 4, size - 4);
-
-    // header stamp
-    uint32_t sec = (uint32_t)timestamp;
-    uint32_t nanosec = (uint32_t)((timestamp - sec) * 1e9);
-    ucdr_serialize_uint32_t(&ub, sec);
-    ucdr_serialize_uint32_t(&ub, nanosec);
-
-    // frame id not necessary
-    ucdr_serialize_string(&ub, "");
-
-    uint32_t names_count = 0;
-    ucdr_serialize_uint32_t(&ub, names_count);
-
-    // positions count (always 12 for 4 legs with 3 joints each)
-    uint32_t pos_count = 12;
-    ucdr_serialize_uint32_t(&ub, pos_count);
-
-    // align buffer to 8 bytes for doubles
-    ucdr_align_to(&ub, 8);
-
-    // serialize joint positions
-    double positions[12];
-    for (int leg = 0; leg < 4; leg++)
-    {
-        positions[leg * 3 + 0] = (double)target_joints[leg][0];
-        positions[leg * 3 + 1] = (double)target_joints[leg][1];
-        positions[leg * 3 + 2] = (double)target_joints[leg][2];
-    }
-    ucdr_serialize_array_double(&ub, positions, 12);
-
-    uint32_t empty_count = 0;
-    ucdr_serialize_uint32_t(&ub, empty_count); // velocity count = 0
-    ucdr_serialize_uint32_t(&ub, empty_count); // effort count = 0
-
-    return 4 + ucdr_buffer_length(&ub);
 }
 
 uint32_t serializeImu(uint8_t *buffer, uint32_t size, const IMUdata &data, double timestamp)

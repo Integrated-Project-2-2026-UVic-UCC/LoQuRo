@@ -6,10 +6,10 @@
 
 extern double getPreciseTime();
 bool deserializeJointStates(ucdrBuffer *ub, float target_joints[4][3], double *timestamp);
-extern void saveConfigCallback();
+extern bool findRouter(char *locator, size_t locator_size);
 extern void beginNetwork();
-extern bool shouldSaveConfig;
 uint32_t serializeImu(uint8_t *buffer, uint32_t size, const IMUdata &data, double timestamp);
+uint32_t serializeByte(uint8_t *buffer, uint8_t value);
+bool deserializeTime(const uint8_t *buffer, size_t len, double *time);
 uint32_t serializeMag(uint8_t *buffer, uint32_t size, const IMUdata &data, double timestamp);
-uint32_t serializeJointStates(uint8_t *buffer, uint32_t size, const float target_joints[4][3], double timestamp);
 #endif

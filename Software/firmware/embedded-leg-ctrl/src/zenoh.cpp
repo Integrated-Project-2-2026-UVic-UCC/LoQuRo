@@ -3,11 +3,42 @@
 #include "config.h"
 #include "tasks.h"
 
-z_owned_session_t s;      // session object
-z_owned_subscriber_t sub; // subsciber object
+z_owned_session_t s;            // session object
+z_owned_subscriber_t sub;       // subsciber object
+z_owned_subscriber_t sub_calib; // subscriber imu calibration request
 z_owned_publisher_t pub_imu;
 z_owned_publisher_t pub_mag;
-z_owned_publisher_t pub_encoder;
+z_owned_publisher_t pub_ready;
+z_owned_publisher_t pub_calib_result;
+z_owned_subscriber_t sub_time;
+
+// closes the session (and everything declared on it) when the setup fails, so it can be retried
+static bool initFailed(const char *msg)
+{
+    Serial.println(msg);
+    z_session_drop(z_session_move(&s));
+    return false;
+}
+
+static bool declareSubscriber(z_owned_subscriber_t *subscriber, const char *keyexpr, z_closure_sample_callback_t handler)
+{
+    Serial.print("ZENOH: Declaring Subscriber on ");
+    Serial.println(keyexpr);
+    z_owned_closure_sample_t callback;
+    z_closure_sample(&callback, handler, NULL, NULL);
+    z_view_keyexpr_t ke;
+    z_view_keyexpr_from_str_unchecked(&ke, keyexpr);
+    return z_declare_subscriber(z_session_loan(&s), subscriber, z_view_keyexpr_loan(&ke), z_closure_sample_move(&callback), NULL) >= 0;
+}
+
+static bool declarePublisher(z_owned_publisher_t *publisher, const char *keyexpr)
+{
+    Serial.print("ZENOH: Declaring Publisher on ");
+    Serial.println(keyexpr);
+    z_view_keyexpr_t ke;
+    z_view_keyexpr_from_str_unchecked(&ke, keyexpr);
+    return z_declare_publisher(z_session_loan(&s), publisher, z_view_keyexpr_loan(&ke), NULL) >= 0;
+}
 
 bool initZenoh(const char *locator_str)
 {
@@ -15,19 +46,7 @@ bool initZenoh(const char *locator_str)
     z_owned_config_t config;
     z_config_default(&config);
     zp_config_insert(z_config_loan_mut(&config), Z_CONFIG_MODE_KEY, MODE);
-    if (strcmp(locator_str, "") != 0)
-    {
-        if (strcmp(MODE, "client") == 0)
-        {
-            zp_config_insert(z_config_loan_mut(&config), Z_CONFIG_CONNECT_KEY,
-                             locator_str);
-        }
-        else
-        {
-            zp_config_insert(z_config_loan_mut(&config), Z_CONFIG_LISTEN_KEY,
-                             locator_str);
-        }
-    }
+    zp_config_insert(z_config_loan_mut(&config), Z_CONFIG_CONNECT_KEY, locator_str);
 
     // Open Zenoh session
     Serial.print("Opening Zenoh Session...");
@@ -41,55 +60,28 @@ bool initZenoh(const char *locator_str)
     // Start read and lease tasks for zenoh-pico
     if (zp_start_read_task(z_session_loan_mut(&s), NULL) < 0 ||
         zp_start_lease_task(z_session_loan_mut(&s), NULL) < 0)
-    {
-        Serial.println("Unable to start read and lease tasks\n");
-        z_session_drop(z_session_move(&s));
-        return false;
-    }
-    // Declare Zenoh subscriber
-    Serial.print("ZENOH: Declaring Subscriber on ");
-    Serial.println(KEYEXPR);
-    z_owned_closure_sample_t callback;
-    z_closure_sample(&callback, data_handler, NULL, NULL);
-    z_view_keyexpr_t ke_sub;
-    z_view_keyexpr_from_str_unchecked(&ke_sub, KEYEXPR);
-    if (z_declare_subscriber(z_session_loan(&s), &sub, z_view_keyexpr_loan(&ke_sub), z_closure_sample_move(&callback), NULL) < 0)
-    {
-        Serial.println("ZENOH: Unable to declare subscriber.");
-        return false;
-    }
+        return initFailed("Unable to start read and lease tasks");
 
-    // declare Zenoh IMu publisher
-    Serial.print("ZENOH: Declaring Publisher on ");
-    Serial.println(IMU_KEYEXPR);
-    z_view_keyexpr_t ke_pub;
-    z_view_keyexpr_from_str_unchecked(&ke_pub, IMU_KEYEXPR);
-    if (z_declare_publisher(z_session_loan(&s), &pub_imu, z_view_keyexpr_loan(&ke_pub), NULL) < 0)
-    {
-        Serial.println("ZENOH: Error declaring IMU publisher");
-        return false;
-    }
-    // declare zenoh mag publisher
-    Serial.print("ZENOH: Declaring Publisher on ");
-    Serial.println(MAG_KEYEXPR);
-    z_view_keyexpr_t ke_pub_mag;
-    z_view_keyexpr_from_str_unchecked(&ke_pub_mag, MAG_KEYEXPR);
-    if (z_declare_publisher(z_session_loan(&s), &pub_mag, z_view_keyexpr_loan(&ke_pub_mag), NULL) < 0)
-    {
-        Serial.println("ZENOH: Error declaring MAG publisher");
-        return false;
-    }
+    if (!declareSubscriber(&sub, KEYEXPR, data_handler))
+        return initFailed("ZENOH: Unable to declare subscriber.");
 
-    // declare zenoh mag publisher
-    Serial.print("ZENOH: Declaring Publisher on ");
-    Serial.println(ENCODER_KEYEXPR);
-    z_view_keyexpr_t ke_pub_encoder;
-    z_view_keyexpr_from_str_unchecked(&ke_pub_encoder, ENCODER_KEYEXPR);
-    if (z_declare_publisher(z_session_loan(&s), &pub_encoder, z_view_keyexpr_loan(&ke_pub_encoder), NULL) < 0)
-    {
-        Serial.println("ZENOH: Error declaring ENCODER publisher");
-        return false;
-    }
+    if (!declareSubscriber(&sub_calib, IMU_CALIB_KEYEXPR, calibration_handler))
+        return initFailed("ZENOH: Unable to declare calibration subscriber.");
+
+    if (!declareSubscriber(&sub_time, TIME_KEYEXPR, time_handler))
+        return initFailed("ZENOH: Unable to declare time subscriber.");
+
+    if (!declarePublisher(&pub_ready, READY_KEYEXPR))
+        return initFailed("ZENOH: Error declaring ready publisher");
+
+    if (!declarePublisher(&pub_calib_result, IMU_CALIB_RESULT_KEYEXPR))
+        return initFailed("ZENOH: Error declaring calibration result publisher");
+
+    if (!declarePublisher(&pub_imu, IMU_KEYEXPR))
+        return initFailed("ZENOH: Error declaring IMU publisher");
+
+    if (!declarePublisher(&pub_mag, MAG_KEYEXPR))
+        return initFailed("ZENOH: Error declaring MAG publisher");
 
     Serial.println("SYSTEM: Zenoh setup finished!");
     return true;

@@ -8,8 +8,6 @@
 namespace Queues
 {
     extern QueueHandle_t joint_states_queue;
-    extern QueueHandle_t time_stamp_queue;
-    extern QueueHandle_t encoder_data_queue;
     extern QueueHandle_t imu_data_queue;
 }
 

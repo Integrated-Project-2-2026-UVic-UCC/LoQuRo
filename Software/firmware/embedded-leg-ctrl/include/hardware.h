@@ -18,14 +18,30 @@ struct Leg
   {
   }
 
+  // The knee is driven through a linkage, so hfe and kfe are coupled: the mechanism only closes while
+  // (hfe - kfe) stays inside a band, and it is singular at the edges. The limits live in this joint space
+  float diff_min = -M_PI; // no limit by default
+  float diff_max = M_PI;
+
   void setLimit(float haa_limit, float hfe_limit, float kfe_limit)
   {
     haa.setLimit(haa_limit);
     hfe.setLimit(hfe_limit);
     kfe.setLimit(kfe_limit);
   }
+  void setCoupledLimit(float hfe_kfe_diff_min, float hfe_kfe_diff_max)
+  {
+    diff_min = hfe_kfe_diff_min;
+    diff_max = hfe_kfe_diff_max;
+  }
   void write(float haa_rads, float hfe_rads, float kfe_rads)
   {
+    // command outside the band: move it to the nearest valid point (same correction in both joints)
+    float diff = hfe_rads - kfe_rads;
+    float excess = diff - constrain(diff, diff_min, diff_max);
+    hfe_rads -= excess / 2.0f;
+    kfe_rads += excess / 2.0f;
+
     haa.write(haa_rads);
     hfe.write(hfe_rads);
     kfe.write(kfe_rads);
@@ -63,9 +79,23 @@ extern Leg leg_rf;
 extern Leg leg_lh;
 extern Leg leg_rh;
 
-extern float joint_states[4][3];
-
 // imu definition
 extern IMUMPU9250 imu;
+
+// robot state, shown in the on-board RGB led
+enum RobotState
+{
+  STATE_ERROR,        // red: hardware not operative
+  STATE_WAIT_WIFI,    // blue blinking: waiting for WiFi (connecting or config portal open)
+  STATE_WAIT_ROS,     // blue: WiFi ok, searching the ROS2 bridge
+  STATE_CALIB_STILL,  // green blinking: calibrating gyro/accel, do not move
+  STATE_CALIB_ROTATE, // green blinking fast: calibrating magnetometer, rotate the robot
+  STATE_READY         // green: ready, joint commands are accepted. Yellow if a peripheral fails (see setDegraded)
+};
+
+void setState(RobotState state);
+RobotState getState();
+void setDegraded(bool degraded); // a peripheral (imu / magnetometer) fails, the robot can still work: yellow led
+bool isDegraded();
 
 #endif
