@@ -1,0 +1,21 @@
+// zenoh-bridge-ros2dds configuration for LoQuRo (version 1.9.0, same as zenoh-pico in the firmware)
+{
+  // the robot finds the bridge by scouting and prefers UDP
+  listen: {
+    endpoints: ["udp/0.0.0.0:7447", "tcp/0.0.0.0:7447"],
+  },
+  plugins: {
+    ros2dds: {
+      // only the topics of the robot go over the WiFi
+      allow: {
+        // ROS -> robot
+        publishers: ["/joint_commands", "/imu/calibrate", "/robot/time"],
+        // robot -> ROS
+        subscribers: ["/imu/data_raw", "/imu/mag", "/robot/ready", "/imu/calibration_result"],
+      },
+      // an old command must never block a new one
+      reliable_routes_blocking: false,
+      pub_priorities: ["/joint_commands=1:express"],
+    },
+  },
+}

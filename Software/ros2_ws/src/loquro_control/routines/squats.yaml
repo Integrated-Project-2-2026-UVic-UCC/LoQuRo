@@ -1,0 +1,19 @@
+# Squats: all the legs down and up, forever.
+# Joint order of every leg: [haa, hfe, kfe] in rad. The right legs are mirrored.
+
+speed: 0.4    # rad/s, maximum speed of every joint (default of every step)
+loop: true
+
+leg_poses:
+  left_down:  [0.7, 1.5608, 0.8196]
+  left_up:    [0.7, 0.3502, 1.4249]
+  right_down: [0.7, 0.0392, 0.7804]
+  right_up:   [0.7, 1.2498, 0.1751]
+
+poses:
+  down: {lf: left_down, rf: right_down, lh: left_down, rh: right_down}
+  up:   {lf: left_up,   rf: right_up,   lh: left_up,   rh: right_up}
+
+sequence:
+  - pose: down
+  - pose: up

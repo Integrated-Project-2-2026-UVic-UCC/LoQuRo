@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!-- LoQuRo, visualization model: parts fixed at the standing pose of the simulation, plus the sensor frames -->
+<robot name="loquro" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- body and legs, generated from the MuJoCo model (scripts/mjcf_to_urdf.py) -->
+  <xacro:include filename="$(find loquro_description)/urdf/loquro_body.xacro"/>
+
+  <!-- IMU (MPU9250). Position from the center of the robot [m]. TODO: check the signs on the robot.
+       Axes of the sensor: x to the left, y forward, z down -->
+  <xacro:property name="imu_x" value="0.020"/>   <!-- along the long side, forward + -->
+  <xacro:property name="imu_y" value="0.030"/>   <!-- along the narrow side, left + -->
+  <xacro:property name="imu_z" value="0.0"/>
+
+  <link name="imu_link"/>
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="${imu_x} ${imu_y} ${imu_z}" rpy="${pi} 0 ${pi/2}"/>
+  </joint>
+</robot>

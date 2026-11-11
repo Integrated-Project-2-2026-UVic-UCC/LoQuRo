@@ -1,0 +1,8 @@
+# Recalibrates the IMU of the robot and stores the calibration in it.
+# 1. Keep the robot still and level (accelerometer + gyroscope, ~2 s after the robot is at rest).
+# 2. Rotate the robot in all directions (magnetometer, 20 s).
+---
+bool success
+string message
+---
+string phase
