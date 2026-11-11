@@ -82,12 +82,13 @@ def main():
         p0, r0 = frames[leg]
         p_rel, r_rel = r0.T @ (p_file - p0), r0.T @ r_file
 
-        file = MESH_FILES[mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_MESH, mesh)]
+        mesh_name = mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_MESH, mesh)
+        file = MESH_FILES[mesh_name]
         used_meshes.add(file)
         rgba = ' '.join('%.2f' % c for c in m.geom_rgba[g])
         visuals[leg].append(
             f'    <visual>\n      {origin(p_rel, r_rel)}\n'
-            f'      <geometry><mesh filename="package://loquro_description/meshes/{file}" scale="0.001 0.001 0.001"/></geometry>\n'
+            f'      <geometry><mesh filename="package://loquro_description/meshes/{file}" scale="{MESH_SCALES[mesh_name]}"/></geometry>\n'
             f'      <material name=""><color rgba="{rgba}"/></material>\n    </visual>')
 
     out = ['<?xml version="1.0"?>',
@@ -114,6 +115,9 @@ def main():
 
 # mesh name -> file, read from the MJCF (MjModel does not keep file names)
 MESH_FILES = {}
+MESH_SCALES = {}
 if __name__ == '__main__':
     MESH_FILES.update(dict(re.findall(r'<mesh name="([^"]+)" file="([^"]+)"', Path(sys.argv[1]).read_text())))
+    # the right legs use the left meshes mirrored (negative scale)
+    MESH_SCALES.update(dict(re.findall(r'<mesh name="([^"]+)" file="[^"]+" scale="([^"]+)"', Path(sys.argv[1]).read_text())))
     main()

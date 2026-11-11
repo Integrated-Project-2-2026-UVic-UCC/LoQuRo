@@ -83,76 +83,76 @@
   </joint>
   <link name="rf_leg">
     <visual>
-      <origin xyz="0.00000 0.00000 -0.00000" rpy="3.14159 1.57079 3.14159"/>
-      <geometry><mesh filename="package://loquro_description/meshes/servo_sin_cabezal.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.00000 -0.00000 -0.00000" rpy="-2.03438 1.56902 1.10721"/>
+      <geometry><mesh filename="package://loquro_description/meshes/servo_sin_cabezal.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.18 0.21 0.25 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.00500 -0.00000 -0.00000" rpy="-1.57084 -1.48883 -1.57075"/>
-      <geometry><mesh filename="package://loquro_description/meshes/union_servo_correct.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.00500 -0.00000 0.00000" rpy="-1.57972 1.48150 1.56190"/>
+      <geometry><mesh filename="package://loquro_description/meshes/union_servo_correct.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.94 0.55 0.20 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.00700 -0.00000 -0.00000" rpy="1.57072 -1.48882 -1.57072"/>
-      <geometry><mesh filename="package://loquro_description/meshes/hombro_pierna_correct_r_encoders.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.00700 -0.00000 0.00001" rpy="-1.57972 1.48150 1.56190"/>
+      <geometry><mesh filename="package://loquro_description/meshes/hombro_pierna_correct_encoders.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.15 0.55 0.78 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.02702 0.02458 -0.01807" rpy="0.00025 1.48882 1.57084"/>
-      <geometry><mesh filename="package://loquro_description/meshes/servo_sin_cabezal.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.02699 -0.02469 0.01789" rpy="-0.00972 1.48150 1.56190"/>
+      <geometry><mesh filename="package://loquro_description/meshes/servo_sin_cabezal.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.30 0.33 0.38 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.02702 0.02957 -0.01766" rpy="-1.45489 -0.78407 -0.08223"/>
-      <geometry><mesh filename="package://loquro_description/meshes/cad_servo20kg_p4_correct.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.02699 -0.02967 0.01744" rpy="1.42482 -0.91089 -3.02508"/>
+      <geometry><mesh filename="package://loquro_description/meshes/cad_servo20kg_p4_correct.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.86 0.24 0.24 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.00966 0.03742 0.00034" rpy="1.45762 0.75971 3.06327"/>
-      <geometry><mesh filename="package://loquro_description/meshes/pieza1_pierna_right_correct.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.02770 -0.02759 -0.01699" rpy="-1.44695 0.76429 0.08680"/>
+      <geometry><mesh filename="package://loquro_description/meshes/pieza1_pierna_left_correct.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.96 0.82 0.18 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.04755 0.02294 0.00188" rpy="-0.00028 -1.48882 -1.57072"/>
-      <geometry><mesh filename="package://loquro_description/meshes/servo_sin_cabezal.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.04700 -0.02291 -0.00201" rpy="0.00975 -1.48150 -1.57972"/>
+      <geometry><mesh filename="package://loquro_description/meshes/servo_sin_cabezal.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.44 0.29 0.58 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.04755 0.02294 0.00188" rpy="1.65278 -0.01439 -0.00139"/>
-      <geometry><mesh filename="package://loquro_description/meshes/pieza2_pierna_right_correct.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.04700 -0.02291 -0.00201" rpy="-1.48066 0.13656 0.01317"/>
+      <geometry><mesh filename="package://loquro_description/meshes/pieza2_pierna_left_correct.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.16 0.72 0.45 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.06849 0.02717 0.02369" rpy="-1.73648 1.05127 2.99724"/>
-      <geometry><mesh filename="package://loquro_description/meshes/tensor_aluminio_11_60_correct.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.06522 -0.02744 -0.02633" rpy="1.41230 -0.97039 -3.00960"/>
+      <geometry><mesh filename="package://loquro_description/meshes/tensor_aluminio_11_60_correct.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.70 0.72 0.70 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.04755 0.02892 0.00238" rpy="1.66453 0.50567 0.04530"/>
-      <geometry><mesh filename="package://loquro_description/meshes/pieza3_pierna_right_correct.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.04701 -0.02888 -0.00255" rpy="-1.46277 -0.59695 -0.06002"/>
+      <geometry><mesh filename="package://loquro_description/meshes/pieza3_pierna_felt_correct.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.70 0.45 0.70 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.14369 0.04096 -0.05028" rpy="1.44189 0.88029 3.04179"/>
-      <geometry><mesh filename="package://loquro_description/meshes/pieza4_pierna_left_correct.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.13783 -0.04191 0.05861" rpy="-1.72760 -0.96301 -3.01166"/>
+      <geometry><mesh filename="package://loquro_description/meshes/pieza4_pierna_right_correct.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.24 0.65 0.65 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.07397 0.05093 -0.13483" rpy="-1.46500 0.68347 0.06675"/>
-      <geometry><mesh filename="package://loquro_description/meshes/foot_left_right.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.07554 -0.05304 0.14864" rpy="1.67906 -0.60007 -0.06043"/>
+      <geometry><mesh filename="package://loquro_description/meshes/foot_left.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.15 0.15 0.15 1.00"/></material>
     </visual>
   </link>
   <joint name="rf_leg_mount" type="fixed">
     <parent link="base_link"/>
     <child link="rf_leg"/>
-    <origin xyz="0.10800 -0.05500 0.01400" rpy="0.00000 -0.00000 3.14159"/>
+    <origin xyz="0.10800 -0.05500 0.01400" rpy="3.14159 0.00000 -3.14159"/>
   </joint>
   <link name="rf_foot"/>
   <joint name="rf_foot_joint" type="fixed">
     <parent link="base_link"/>
     <child link="rf_foot"/>
-    <origin xyz="0.03403 -0.10593 -0.12083" rpy="0.00000 -0.00000 0.00000"/>
+    <origin xyz="0.03246 -0.10804 -0.13464" rpy="0.00000 -0.00000 0.00000"/>
   </joint>
   <link name="lh_leg">
     <visual>
@@ -229,75 +229,75 @@
   </joint>
   <link name="rh_leg">
     <visual>
-      <origin xyz="0.00000 0.00000 -0.00000" rpy="3.14159 1.57079 3.14159"/>
-      <geometry><mesh filename="package://loquro_description/meshes/servo_sin_cabezal.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.00000 -0.00000 -0.00000" rpy="-2.03438 1.56902 1.10721"/>
+      <geometry><mesh filename="package://loquro_description/meshes/servo_sin_cabezal.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.18 0.21 0.25 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.00500 -0.00000 -0.00000" rpy="-1.57084 -1.49209 -1.57075"/>
-      <geometry><mesh filename="package://loquro_description/meshes/union_servo_correct.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.00500 -0.00000 0.00000" rpy="-1.57972 1.48150 1.56190"/>
+      <geometry><mesh filename="package://loquro_description/meshes/union_servo_correct.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.94 0.55 0.20 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.00700 -0.00000 -0.00000" rpy="1.57072 -1.49209 -1.57072"/>
-      <geometry><mesh filename="package://loquro_description/meshes/hombro_pierna_correct_r_encoders.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.00700 -0.00000 0.00001" rpy="-1.57972 1.48150 1.56190"/>
+      <geometry><mesh filename="package://loquro_description/meshes/hombro_pierna_correct_encoders.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.15 0.55 0.78 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.02702 0.02452 -0.01815" rpy="0.00025 1.49209 1.57084"/>
-      <geometry><mesh filename="package://loquro_description/meshes/servo_sin_cabezal.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.02699 -0.02469 0.01789" rpy="-0.00972 1.48150 1.56190"/>
+      <geometry><mesh filename="package://loquro_description/meshes/servo_sin_cabezal.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.30 0.33 0.38 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.02702 0.02951 -0.01776" rpy="-1.45883 -0.79027 -0.07993"/>
-      <geometry><mesh filename="package://loquro_description/meshes/cad_servo20kg_p4_correct.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.02699 -0.02967 0.01744" rpy="1.42482 -0.91089 -3.02508"/>
+      <geometry><mesh filename="package://loquro_description/meshes/cad_servo20kg_p4_correct.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.86 0.24 0.24 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.00955 0.03743 0.00011" rpy="1.46215 0.75968 3.06641"/>
-      <geometry><mesh filename="package://loquro_description/meshes/pieza1_pierna_right_correct.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.02770 -0.02759 -0.01699" rpy="-1.44695 0.76429 0.08680"/>
+      <geometry><mesh filename="package://loquro_description/meshes/pieza1_pierna_left_correct.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.96 0.82 0.18 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.04755 0.02295 0.00181" rpy="-0.00028 -1.49209 -1.57072"/>
-      <geometry><mesh filename="package://loquro_description/meshes/servo_sin_cabezal.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.04700 -0.02291 -0.00201" rpy="0.00975 -1.48150 -1.57972"/>
+      <geometry><mesh filename="package://loquro_description/meshes/servo_sin_cabezal.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.44 0.29 0.58 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.04755 0.02295 0.00181" rpy="1.64952 -0.02384 -0.00209"/>
-      <geometry><mesh filename="package://loquro_description/meshes/pieza2_pierna_right_correct.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.04700 -0.02291 -0.00201" rpy="-1.48066 0.13656 0.01317"/>
+      <geometry><mesh filename="package://loquro_description/meshes/pieza2_pierna_left_correct.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.16 0.72 0.45 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.06829 0.02723 0.02380" rpy="-1.72762 1.04328 3.00560"/>
-      <geometry><mesh filename="package://loquro_description/meshes/tensor_aluminio_11_60_correct.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.06522 -0.02744 -0.02633" rpy="1.41230 -0.97039 -3.00960"/>
+      <geometry><mesh filename="package://loquro_description/meshes/tensor_aluminio_11_60_correct.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.70 0.72 0.70 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.04755 0.02893 0.00228" rpy="1.66121 0.51408 0.04435"/>
-      <geometry><mesh filename="package://loquro_description/meshes/pieza3_pierna_right_correct.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.04701 -0.02888 -0.00255" rpy="-1.46277 -0.59695 -0.06002"/>
+      <geometry><mesh filename="package://loquro_description/meshes/pieza3_pierna_felt_correct.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.70 0.45 0.70 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.14324 0.04085 -0.05120" rpy="1.44502 0.89342 3.04318"/>
-      <geometry><mesh filename="package://loquro_description/meshes/pieza4_pierna_left_correct.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.13783 -0.04191 0.05861" rpy="-1.72760 -0.96301 -3.01166"/>
+      <geometry><mesh filename="package://loquro_description/meshes/pieza4_pierna_right_correct.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.24 0.65 0.65 1.00"/></material>
     </visual>
     <visual>
-      <origin xyz="0.07463 0.05062 -0.13668" rpy="-1.47026 0.67084 0.06242"/>
-      <geometry><mesh filename="package://loquro_description/meshes/foot_left_right.stl" scale="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0.07554 -0.05304 0.14864" rpy="1.67906 -0.60007 -0.06043"/>
+      <geometry><mesh filename="package://loquro_description/meshes/foot_left.stl" scale="0.001 0.001 -0.001"/></geometry>
       <material name=""><color rgba="0.15 0.15 0.15 1.00"/></material>
     </visual>
   </link>
   <joint name="rh_leg_mount" type="fixed">
     <parent link="base_link"/>
     <child link="rh_leg"/>
-    <origin xyz="-0.08250 -0.05500 0.01400" rpy="0.00000 -0.00000 3.14159"/>
+    <origin xyz="-0.08250 -0.05500 0.01400" rpy="3.14159 0.00000 -3.14159"/>
   </joint>
   <link name="rh_foot"/>
   <joint name="rh_foot_joint" type="fixed">
     <parent link="base_link"/>
     <child link="rh_foot"/>
-    <origin xyz="-0.15713 -0.10562 -0.12268" rpy="0.00000 -0.00000 0.00000"/>
+    <origin xyz="-0.15804 -0.10804 -0.13464" rpy="0.00000 -0.00000 0.00000"/>
   </joint>
 </robot>

@@ -22,13 +22,13 @@ QUAD_JOINT_POS = {
     "fl_tensor_aluminio_passive_joint": 0.014233,
     "fl_femur_joint": 0.79746,
     "fl_tibia_passive_joint": 0.0197625,
-    "fr_shoulder_joint": 0.789562,
-    "fr_knee_joint": 0.794936,
-    "fr_pieza1_pierna_joint": -0.826888,
-    "fr_shoulder_passive_joint": -0.827335,
-    "fr_tensor_aluminio_passive_joint": 0.0561641,
-    "fr_femur_joint": 0.772312,
-    "fr_tibia_passive_joint": 0.0600942,
+    "fr_shoulder_joint": 0.7854,
+    "fr_knee_joint": 0.7854,
+    "fr_pieza1_pierna_joint": -0.820148,
+    "fr_shoulder_passive_joint": 0.82767,
+    "fr_tensor_aluminio_passive_joint": -0.0132543,
+    "fr_femur_joint": 0.7854,
+    "fr_tibia_passive_joint": -0.0130388,
     "rl_shoulder_joint": 0.784472,
     "rl_knee_joint": 0.782318,
     "rl_pieza1_pierna_joint": -0.787276,
@@ -36,13 +36,13 @@ QUAD_JOINT_POS = {
     "rl_tensor_aluminio_passive_joint": -0.00358814,
     "rl_femur_joint": 0.7894,
     "rl_tibia_passive_joint": -0.00155224,
-    "rr_shoulder_joint": 0.786294,
-    "rr_knee_joint": 0.788958,
-    "rr_pieza1_pierna_joint": -0.82063,
-    "rr_shoulder_passive_joint": -0.81786,
-    "rr_tensor_aluminio_passive_joint": 0.0381243,
-    "rr_femur_joint": 0.780609,
-    "rr_tibia_passive_joint": 0.0388843,
+    "rr_shoulder_joint": 0.7854,
+    "rr_knee_joint": 0.7854,
+    "rr_pieza1_pierna_joint": -0.820148,
+    "rr_shoulder_passive_joint": 0.82767,
+    "rr_tensor_aluminio_passive_joint": -0.0132543,
+    "rr_femur_joint": 0.7854,
+    "rr_tibia_passive_joint": -0.0130388,
 }
 
 QUAD_INIT_QPOS = QUAD_BASE_POS + QUAD_BASE_ROT + tuple(QUAD_JOINT_POS.values())
@@ -81,6 +81,30 @@ QUAD_ARTICULATION = EntityArticulationInfoCfg(
     actuators=(QUAD_ACTUATOR_CFG,),
     soft_joint_pos_limit_factor=0.9,
 )
+
+
+# ── Real robot (firmware) -> simulation ────────────────────────────────────
+# The firmware and ROS use 12 positions in the order lf rf lh rh x [haa, hfe, kfe]. The simulation actuators are
+# fl fr rl rr x [shoulder, knee, femur]: same legs and same rotation directions (checked on the real robot), but
+# hfe is the femur servo and kfe the knee servo, so the last two joints of every leg are swapped.
+# Knee linkage band of the firmware (include/config.h, Leg::write): values of a left leg, sign changed on the right.
+FIRMWARE_DIFF_MIN = -0.84
+FIRMWARE_DIFF_MAX = 0.81
+FIRMWARE_INIT_POSE = (0.7, 0.8, 0.8) * 4
+
+
+def firmware_to_sim_ctrl(command) -> list[float]:
+    """Simulation ctrl (12) that reproduces a /joint_commands message (12) of the real robot."""
+    ctrl = []
+    for leg in range(4):
+        haa, hfe, kfe = command[leg * 3: leg * 3 + 3]
+        lo, hi = (FIRMWARE_DIFF_MIN, FIRMWARE_DIFF_MAX) if leg % 2 == 0 else (-FIRMWARE_DIFF_MAX, -FIRMWARE_DIFF_MIN)
+        diff = hfe - kfe
+        excess = diff - min(max(diff, lo), hi)  # outside the band: same correction in both joints
+        hfe -= excess / 2.0
+        kfe += excess / 2.0
+        ctrl += [haa, kfe, hfe]  # [shoulder, knee, femur]
+    return ctrl
 
 
 def get_quad_bot_cfg() -> EntityCfg:
