@@ -8,11 +8,9 @@
 #include <Wire.h>
 #include <unity.h>
 
-#include "hardware.h"            // Leg + ServoParams (canales)
-#include "../../src/PCA9685.cpp" // implementación de PCA9685Servo (no se compila src/ en los tests)
+#include "hardware.h" // Leg, ServoParams (canales) y pwm del código real
 
 static constexpr uint8_t PCA_ADDR = 0x40;
-Adafruit_PWMServoDriver pwm(PCA_ADDR, Wire1); // mismo bus y dirección que hardware.cpp
 
 struct TestLeg
 {
